@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>11th Lesson — Complete LMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08090E; --s1:rgba(255,255,255,0.04); --s2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+  --t1:#F2F3FF; --t2:rgba(242,243,255,0.55); --t3:rgba(242,243,255,0.25); --t4:rgba(242,243,255,0.1);
+  --brand:#4E6EFF; --brand-d:rgba(78,110,255,0.15); --brand-b:rgba(78,110,255,0.25);
+  --violet:#A78BFF; --violet-d:rgba(167,139,255,0.12);
+  --amber:#F5A623; --amber-d:rgba(245,166,35,0.12);
+  --green:#2DD4A0; --green-d:rgba(45,212,160,0.12);
+  --red:#FF5C5C; --red-d:rgba(255,92,92,0.1);
+  --pink:#F472B6; --pink-d:rgba(244,114,182,0.12);
+  --r:18px; --rsm:12px; --rxs:8px; --nav:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--t1);font-size:15px;}
+
+/* ─── AMBIENT ─── */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;animation:orbf 9s ease-in-out infinite alternate;}
+.orb1{width:500px;height:500px;top:-180px;left:-120px;background:radial-gradient(circle,rgba(78,110,255,0.1) 0%,transparent 70%);animation-duration:9s;}
+.orb2{width:360px;height:360px;bottom:80px;right:-80px;background:radial-gradient(circle,rgba(45,212,160,0.07) 0%,transparent 70%);animation-duration:12s;animation-direction:alternate-reverse;}
+.orb3{width:280px;height:280px;top:40%;left:60%;background:radial-gradient(circle,rgba(167,139,255,0.06) 0%,transparent 70%);animation-duration:15s;}
+@keyframes orbf{from{transform:translate(0,0) scale(1);}to{transform:translate(24px,36px) scale(1.12);}}
+
+/* ─── SHELL ─── */
+.shell{position:relative;z-index:1;max-width:420px;margin:0 auto;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+@media(min-width:480px){.shell{box-shadow:0 0 80px rgba(0,0,0,0.6);}}
+
+/* ─── PAGES ─── */
+.page{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.28s cubic-bezier(.4,0,.2,1),transform 0.28s cubic-bezier(.4,0,.2,1);transform:translateY(12px);}
+.page.active{opacity:1;pointer-events:all;transform:translateY(0);}
+.page.slide-left{transform:translateX(-24px);}
+.page.slide-right{transform:translateX(24px);}
+
+/* ─── SCROLL ─── */
+.scr{flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.scr::-webkit-scrollbar{display:none;}
+
+/* ─── GLASS ─── */
+.g{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.g2{background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.press{cursor:pointer;transition:transform 0.18s,background 0.2s;}
+.press:active{transform:scale(0.96)!important;}
+
+/* ─── TYPOGRAPHY ─── */
+.h1{font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:800;color:var(--t1);line-height:1.15;}
+.h2{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:700;color:var(--t1);}
+.h3{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;color:var(--t1);}
+.h4{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:700;color:var(--t1);}
+.grad{background:linear-gradient(90deg,var(--brand),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.grad-a{background:linear-gradient(90deg,var(--amber),#EF4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.grad-g{background:linear-gradient(90deg,var(--green),#0891B2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ─── INPUTS ─── */
+.field{margin-bottom:14px;}
+.field-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.inp{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:var(--rsm);padding:13px 16px;color:var(--t1);font-family:'Instrument Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s,background 0.2s;}
+.inp::placeholder{color:var(--t4);}
+.inp:focus{border-color:rgba(78,110,255,0.5);background:var(--s2);}
+.inp-row{display:grid;gap:10px;}
+.inp-row.c2{grid-template-columns:1fr 1fr;}
+select.inp{appearance:none;cursor:pointer;}
+textarea.inp{resize:none;min-height:80px;}
+
+/* ─── BUTTONS ─── */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;transition:transform 0.18s,opacity 0.2s;}
+.btn:active{transform:scale(0.97);}
+.btn-brand{background:var(--brand);color:white;box-shadow:0 4px 24px rgba(78,110,255,0.3);}
+.btn-brand:hover{opacity:0.9;}
+.btn-ghost{background:var(--s1);border:1.5px solid var(--border);color:var(--t2);}
+.btn-sm{padding:9px 16px;font-size:12px;border-radius:10px;width:auto;}
+.btn-xs{padding:6px 13px;font-size:11px;border-radius:8px;width:auto;}
+
+/* ─── CHIPS ─── */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.18s;border:1.5px solid var(--border);background:var(--s1);color:var(--t2);}
+.chip:active{transform:scale(0.9);}
+.chip.on{background:var(--brand-d);border-color:rgba(78,110,255,0.35);color:#8BA4FF;}
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;}
+
+/* ─── TAGS ─── */
+.tag{display:inline-block;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;}
+.tag-b{background:var(--brand-d);color:#8BA4FF;border:1px solid rgba(78,110,255,0.2);}
+.tag-a{background:var(--amber-d);color:var(--amber);border:1px solid rgba(245,166,35,0.2);}
+.tag-g{background:var(--green-d);color:var(--green);border:1px solid rgba(45,212,160,0.2);}
+.tag-r{background:var(--red-d);color:var(--red);border:1px solid rgba(255,92,92,0.15);}
+.tag-v{background:var(--violet-d);color:var(--violet);border:1px solid rgba(167,139,255,0.2);}
+.tag-p{background:var(--pink-d);color:var(--pink);border:1px solid rgba(244,114,182,0.2);}
+
+/* ─── DIVIDER ─── */
+.div-row{display:flex;align-items:center;gap:12px;margin:16px 0;}
+.div-line{flex:1;height:1px;background:var(--border);}
+.div-txt{font-size:11px;color:var(--t4);font-weight:500;}
+
+/* ─── TOP BAR ─── */
+.tbar{padding:48px 16px 14px;flex-shrink:0;}
+.tbar-row{display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:var(--s1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:transform 0.18s;}
+.back-btn:active{transform:scale(0.88);}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--s1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:transform 0.18s,background 0.2s;position:relative;flex-shrink:0;}
+.icon-btn:active{transform:scale(0.88);}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--amber);border:2px solid var(--bg);}
+.progress-bar-mini{height:2px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-top:12px;}
+.pbm-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--violet));border-radius:2px;transition:width 0.4s ease;}
+
+/* ─── BOTTOM NAV ─── */
+.bnav{height:var(--nav);background:rgba(8,9,14,0.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;padding:0 8px;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;transition:transform 0.18s;user-select:none;}
+.ni:active{transform:scale(0.82);}
+.ni-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.2s;position:relative;}
+.ni.on .ni-ico{background:var(--brand-d);}
+.ni.on .ni-ico::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:14px;height:2px;border-radius:2px;background:var(--brand);}
+.ni-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:0.4px;text-transform:uppercase;transition:color 0.2s;}
+.ni.on .ni-lbl{color:var(--brand);}
+
+/* ─── AVATAR ─── */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:white;flex-shrink:0;background:linear-gradient(135deg,var(--brand),var(--violet));}
+
+/* ─── SECTION HEAD ─── */
+.sec{display:flex;align-items:center;justify-content:space-between;margin:20px 0 12px;}
+.sec-t{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--t1);}
+.sec-a{font-size:12px;color:var(--brand);font-weight:500;cursor:pointer;opacity:.8;}
+.sec-a:hover{opacity:1;}
+
+/* ─── PROGRESS RING ─── */
+.ring-w{position:relative;flex-shrink:0;}
+.ring-svg{transform:rotate(-90deg);}
+.rt{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:5;}
+.rf{fill:none;stroke:url(#rg);stroke-width:5;stroke-linecap:round;animation:rdraw 1.6s cubic-bezier(.4,0,.2,1) forwards;}
+@keyframes rdraw{from{stroke-dashoffset:var(--start,220);}to{stroke-dashoffset:var(--end,55);}}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:var(--t1);}
+
+/* ─── MINI BARS ─── */
+.mbar{height:4px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;}
+.mfill{height:100%;border-radius:4px;animation:barsweep 1.2s cubic-bezier(.4,0,.2,1) both;}
+@keyframes barsweep{from{width:0%!important;}to{}}
+.mfill.b{background:linear-gradient(90deg,var(--brand),var(--violet));}
+.mfill.a{background:linear-gradient(90deg,var(--amber),#EF4444);}
+.mfill.g{background:linear-gradient(90deg,var(--green),#0891B2);}
+.mfill.r{background:linear-gradient(90deg,var(--red),var(--pink));}
+
+/* ─── FADE ANIMATIONS ─── */
+.fa{opacity:0;animation:fup .4s ease both;}
+.fa.d1{animation-delay:.1s;}.fa.d2{animation-delay:.2s;}.fa.d3{animation-delay:.3s;}.fa.d4{animation-delay:.4s;}.fa.d5{animation-delay:.5s;}
+@keyframes fup{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─── SHIMMER ─── */
+.skel{background:linear-gradient(90deg,var(--s1) 25%,rgba(255,255,255,0.07) 50%,var(--s1) 75%);background-size:300% 100%;animation:shim 1.8s infinite;border:1px solid var(--border);}
+@keyframes shim{0%{background-position:300% 0;}100%{background-position:-300% 0;}}
+
+/* ─── CONFETTI ─── */
+#cnf{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none;}
+.co{position:absolute;animation:cfall linear forwards;}
+@keyframes cfall{0%{transform:translateY(-5vh) rotate(0deg);opacity:1;}100%{transform:translateY(105vh) rotate(540deg);opacity:0;}}
+
+/* ─── NOTIF DRAWER ─── */
+.drawer{position:absolute;top:0;right:0;bottom:0;width:300px;background:rgba(10,11,18,0.97);backdrop-filter:blur(32px);border-left:1px solid var(--border);z-index:300;transform:translateX(110%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);overflow-y:auto;scrollbar-width:none;padding:52px 16px 20px;}
+.drawer::-webkit-scrollbar{display:none;}
+.drawer.open{transform:translateX(0);}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:299;display:none;opacity:0;transition:opacity 0.25s;}
+.overlay.on{display:block;opacity:1;}
+
+/* ─── SETTINGS ROW ─── */
+.setrow{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;border-radius:var(--rsm);}
+.setrow:active{background:var(--s2);}
+.set-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.set-info{flex:1;}
+.set-title{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:2px;}
+.set-sub{font-size:12px;color:var(--t3);}
+.chev{color:var(--t4);font-size:16px;}
+.toggle{width:42px;height:24px;border-radius:12px;background:var(--s2);border:1px solid var(--border);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--brand);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:white;transition:left 0.2s;}
+.toggle.on::after{left:21px;}
+
+/* ─── COURSE CARD ─── */
+.cc{border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform 0.2s;flex-shrink:0;}
+.cc:active{transform:scale(0.95);}
+.cc-thumb{height:100px;display:flex;align-items:center;justify-content:center;font-size:34px;position:relative;overflow:hidden;}
+.cc-thumb.t1{background:linear-gradient(135deg,rgba(78,110,255,0.55),rgba(124,58,237,0.45));}
+.cc-thumb.t2{background:linear-gradient(135deg,rgba(245,166,35,0.5),rgba(239,68,68,0.45));}
+.cc-thumb.t3{background:linear-gradient(135deg,rgba(45,212,160,0.5),rgba(8,145,178,0.45));}
+.cc-thumb.t4{background:linear-gradient(135deg,rgba(244,114,182,0.5),rgba(167,139,255,0.45));}
+.cc-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);color:rgba(255,255,255,0.75);font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:0.5px;}
+.cc-body{background:var(--s1);border:1px solid var(--border);border-top:none;padding:12px;backdrop-filter:blur(20px);}
+
+/* ─── FILE ROW ─── */
+.frow{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;}
+.frow:active{background:var(--s2);}
+.ficon{width:38px;height:38px;border-radius:10px;background:var(--brand-d);border:1px solid rgba(78,110,255,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.finfo{flex:1;min-width:0;}
+.fname{font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.fmeta{font-size:11px;color:var(--t3);}
+
+/* ─── STEP INDICATOR ─── */
+.steps{display:flex;gap:6px;margin-bottom:24px;}
+.step{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.06);transition:background 0.3s;}
+.step.done{background:var(--brand);}
+.step.cur{background:linear-gradient(90deg,var(--brand),var(--violet));}
+
+/* ─── ROLE CARD ─── */
+.role-card{padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px;transition:all 0.2s;}
+.role-card.sel{border-color:rgba(78,110,255,0.4);background:var(--brand-d);}
+.role-card:active{transform:scale(0.98);}
+.role-ico{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.role-info{flex:1;}
+.role-name{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--t1);margin-bottom:3px;}
+.role-sub{font-size:12px;color:var(--t3);}
+.role-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:11px;}
+.role-card.sel .role-check{background:var(--brand);border-color:var(--brand);color:white;}
+
+/* ─── PROFILE HERO ─── */
+.prof-hero{background:linear-gradient(135deg,rgba(78,110,255,0.18),rgba(167,139,255,0.1));border-bottom:1px solid var(--border);padding:52px 16px 24px;position:relative;overflow:hidden;flex-shrink:0;}
+.prof-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(78,110,255,0.08);}
+.prof-av{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);font-size:26px;cursor:pointer;position:relative;}
+.prof-av:active{transform:scale(0.94);}
+.av-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:10px;border:2px solid var(--bg);}
+
+/* ─── UPLOAD ZONE ─── */
+.upload-zone{border:2px dashed rgba(78,110,255,0.3);border-radius:var(--r);padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;background:rgba(78,110,255,0.03);}
+.upload-zone:hover,.upload-zone:active{border-color:rgba(78,110,255,0.6);background:var(--brand-d);}
+.uz-icon{font-size:32px;margin-bottom:4px;}
+.uz-title{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:700;color:var(--t2);}
+.uz-sub{font-size:12px;color:var(--t3);text-align:center;}
+.uz-types{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
+
+/* ─── XP BAR ─── */
+.xpbar{height:8px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;}
+.xpfill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--amber),#EF4444);animation:barsweep 1.4s cubic-bezier(.4,0,.2,1) 0.4s both;}
+
+/* ─── STAT TILES ─── */
+.strio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stile{padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.stile:active{transform:scale(0.94);}
+.stv{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:var(--t1);}
+.stl{font-size:9px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;}
+
+/* ─── SCROLL X ─── */
+.scrx{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.scrx::-webkit-scrollbar{display:none;}
+
+/* ─── DEADLINE ITEM ─── */
+.dlitem{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;}
+.dlitem:active{background:var(--s2);}
+.dl-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.dl-info{flex:1;}
+.dl-t{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px;}
+.dl-s{font-size:11px;color:var(--t3);}
+.dl-time{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:700;white-space:nowrap;}
+
+/* ─── EMPTY STATE ─── */
+.empty{display:flex;flex-direction:column;align-items:center;padding:50px 20px;text-align:center;}
+.empty-ico{font-size:48px;opacity:.35;margin-bottom:12px;}
+.empty-t{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;color:var(--t2);margin-bottom:6px;}
+.empty-s{font-size:13px;color:var(--t4);line-height:1.5;}
+
+/* ─── GRAPH BARS ─── */
+.gbars{display:flex;align-items:flex-end;gap:6px;height:70px;}
+.gbcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;}
+.gbbar{width:100%;border-radius:5px 5px 2px 2px;min-height:3px;transform-origin:bottom;animation:bup .8s cubic-bezier(.4,0,.2,1) both;opacity:0;}
+@keyframes bup{from{opacity:0;transform:scaleY(0);}to{opacity:1;transform:scaleY(1);}}
+.gbbar.dim{background:rgba(255,255,255,0.06);}
+.gbbar.lit{background:linear-gradient(180deg,var(--brand),rgba(78,110,255,0.3));}
+.gbbar.tod{background:linear-gradient(180deg,var(--violet),rgba(167,139,255,0.4));}
+.gbday{font-size:9px;color:var(--t3);font-weight:600;}
+
+/* ─── PINNED ITEMS ─── */
+.pinner{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.ptile{padding:15px;cursor:pointer;display:flex;flex-direction:column;gap:8px;}
+.ptile:active{transform:scale(0.96);}
+.pt-ico{font-size:20px;}
+.pt-t{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:700;color:var(--t1);}
+.pt-s{font-size:11px;color:var(--t3);line-height:1.4;}
+
+/* ─── FAB ─── */
+.fab{position:absolute;bottom:calc(var(--nav) + 14px);right:14px;width:48px;height:48px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:0 4px 20px rgba(78,110,255,0.35);z-index:50;transition:transform .2s;animation:fabin .5s cubic-bezier(.4,0,.2,1) .6s both;}
+.fab:active{transform:scale(.88);}
+@keyframes fabin{from{opacity:0;transform:scale(.4) translateY(16px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+/* ─── PULSE DOT ─── */
+.pulse{width:7px;height:7px;border-radius:50%;animation:plse 1.6s ease infinite;}
+@keyframes plse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.7);opacity:.45;}}
+.pulse.g{background:var(--green);}
+.pulse.b{background:var(--brand);}
+
+/* ─── AVATAR STACK ─── */
+.avstack{display:flex;}
+.av-xs{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:white;margin-left:-6px;}
+.av-xs:first-child{margin-left:0;}
+
+/* ─── RESPONSIVE HINT ─── */
+.hint{display:none;text-align:center;padding:8px;font-size:10px;color:var(--t4);letter-spacing:.6px;text-transform:uppercase;flex-shrink:0;}
+@media(min-width:480px){.hint{display:block;}}
+
+/* LOGIN splash */
+.splash-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.splash-orb{position:absolute;border-radius:50%;animation:splrb 4s ease-in-out infinite alternate;}
+.splash-orb.s1{width:300px;height:300px;top:-80px;left:-80px;background:radial-gradient(circle,rgba(78,110,255,0.2),transparent 70%);animation-duration:5s;}
+.splash-orb.s2{width:250px;height:250px;bottom:-60px;right:-60px;background:radial-gradient(circle,rgba(167,139,255,0.15),transparent 70%);animation-duration:7s;animation-direction:alternate-reverse;}
+.splash-orb.s3{width:200px;height:200px;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(45,212,160,0.08),transparent 70%);animation-duration:9s;}
+@keyframes splrb{from{transform:scale(1) translate(0,0);}to{transform:scale(1.2) translate(10px,15px);}}
+</style>
+</head>
+<body>
+<div id="cnf"></div>
+<div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+<div class="shell">
+<div class="hint">📱 11th Lesson · Full LMS UI Prototype</div>
+
+<!-- SVG DEFS -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4E6EFF"/>
+      <stop offset="100%" stop-color="#A78BFF"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 0 — SPLASH / WELCOME
+═══════════════════════════════════════════════ -->
+<div class="page active" id="p-splash" style="justify-content:center;align-items:center;">
+  <div class="splash-bg">
+    <div class="splash-orb s1"></div><div class="splash-orb s2"></div><div class="splash-orb s3"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:32px;text-align:center;width:100%;">
+    <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--brand),var(--violet));margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 32px rgba(78,110,255,0.4);">📚</div>
+    <div class="h1" style="margin-bottom:8px;">11th Lesson</div>
+    <div style="font-size:15px;color:var(--t2);margin-bottom:48px;line-height:1.6;">The universal learning platform<br>for students &amp; educators</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-brand" onclick="go('p-login')">Sign In</button>
+      <button class="btn btn-ghost" onclick="go('p-register')">Create Account</button>
+    </div>
+    <div style="margin-top:20px;font-size:12px;color:var(--t4);">Trusted by 50,000+ learners across 200+ universities</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 1 — LOGIN
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-login">
+  <div class="tbar">
+    <div class="tbar-row">
+      <div class="back-btn" onclick="go('p-splash')">←</div>
+      <div style="font-size:12px;color:var(--t3);font-weight:500;">Sign In</div>
+      <div style="width:36px;"></div>
+    </div>
+  </div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:28px;">
+      <div class="h1" style="margin-bottom:6px;">Welcome back 👋</div>
+      <div style="font-size:14px;color:var(--t3);">Sign in to continue your learning journey</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Email or Student ID</div>
+      <input class="inp" type="email" placeholder="you@university.edu" value="shoeb@diu.edu.bd">
+    </div>
+    <div class="field">
+      <div class="field-label">Password</div>
+      <input class="inp" type="password" placeholder="••••••••" value="••••••••">
+    </div>
+    <div style="text-align:right;margin-bottom:20px;margin-top:-6px;">
+      <span style="font-size:12px;color:var(--brand);cursor:pointer;">Forgot password?</span>
+    </div>
+    <button class="btn btn-brand" onclick="go('p-dashboard')" style="margin-bottom:14px;">Sign In</button>
+    <div class="div-row"><div class="div-line"></div><div class="div-txt">or continue with</div><div class="div-line"></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+      <button class="btn btn-ghost" style="padding:11px;font-size:13px;">🔵 Google</button>
+      <button class="btn btn-ghost" style="padding:11px;font-size:13px;">⬛ GitHub</button>
+    </div>
+    <div style="text-align:center;font-size:13px;color:var(--t3);">Don't have an account? <span style="color:var(--brand);cursor:pointer;font-weight:600;" onclick="go('p-register')">Sign up</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 2 — REGISTER
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-register">
+  <div class="tbar">
+    <div class="tbar-row">
+      <div class="back-btn" onclick="go('p-splash')">←</div>
+      <div style="font-size:12px;color:var(--t3);font-weight:500;">Create Account</div>
+      <div style="width:36px;"></div>
+    </div>
+  </div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:20px;">
+      <div class="h1" style="margin-bottom:6px;">Join 11th Lesson</div>
+      <div style="font-size:14px;color:var(--t3);">Create your account to get started</div>
+    </div>
+    <div class="inp-row c2" style="margin-bottom:14px;">
+      <div class="field" style="margin-bottom:0">
+        <div class="field-label">First Name</div>
+        <input class="inp" type="text" placeholder="Shoeb">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <div class="field-label">Last Name</div>
+        <input class="inp" type="text" placeholder="Nafiz">
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Email Address</div>
+      <input class="inp" type="email" placeholder="you@university.edu">
+    </div>
+    <div class="field">
+      <div class="field-label">Password</div>
+      <input class="inp" type="password" placeholder="Minimum 8 characters">
+    </div>
+    <div class="field">
+      <div class="field-label">Confirm Password</div>
+      <input class="inp" type="password" placeholder="Repeat password">
+    </div>
+    <button class="btn btn-brand" onclick="go('p-setup-role')" style="margin-bottom:12px;">Continue →</button>
+    <div style="text-align:center;font-size:13px;color:var(--t3);">Already have an account? <span style="color:var(--brand);cursor:pointer;font-weight:600;" onclick="go('p-login')">Sign in</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 3 — SETUP: CHOOSE ROLE
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-setup-role">
+  <div class="tbar">
+    <div class="tbar-row">
+      <div class="back-btn" onclick="go('p-register')">←</div>
+      <div style="font-size:12px;color:var(--t3);">Step 1 of 4</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="progress-bar-mini"><div class="pbm-fill" style="width:25%"></div></div>
+  </div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:24px;">
+      <div class="h1" style="margin-bottom:6px;">I am a…</div>
+      <div style="font-size:14px;color:var(--t3);">Choose your role to personalize your experience</div>
+    </div>
+    <div class="g role-card" onclick="selRole(this,'student')" id="role-student">
+      <div class="role-ico" style="background:var(--brand-d);border:1px solid rgba(78,110,255,0.2);">🎓</div>
+      <div class="role-info">
+        <div class="role-name">Student</div>
+        <div class="role-sub">Access courses, quizzes, notes & track progress</div>
+      </div>
+      <div class="role-check">✓</div>
+    </div>
+    <div class="g role-card" onclick="selRole(this,'teacher')" id="role-teacher">
+      <div class="role-ico" style="background:var(--green-d);border:1px solid rgba(45,212,160,0.2);">🧑‍🏫</div>
+      <div class="role-info">
+        <div class="role-name">Teacher / Educator</div>
+        <div class="role-sub">Create content, manage classes, grade assignments</div>
+      </div>
+      <div class="role-check">✓</div>
+    </div>
+    <div class="g role-card" onclick="selRole(this,'admin')" id="role-admin">
+      <div class="role-ico" style="background:var(--amber-d);border:1px solid rgba(245,166,35,0.2);">🛡️</div>
+      <div class="role-info">
+        <div class="role-name">Administrator</div>
+        <div class="role-sub">Manage platform, users & institutional settings</div>
+      </div>
+      <div class="role-check">✓</div>
+    </div>
+    <button class="btn btn-brand" style="margin-top:16px;" onclick="go('p-setup-profile')">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 4 — SETUP: PROFILE DETAILS
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-setup-profile">
+  <div class="tbar">
+    <div class="tbar-row">
+      <div class="back-btn" onclick="go('p-setup-role')">←</div>
+      <div style="font-size:12px;color:var(--t3);">Step 2 of 4</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="progress-bar-mini"><div class="pbm-fill" style="width:50%"></div></div>
+  </div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:20px;">
+      <div class="h1" style="margin-bottom:6px;">Your Profile</div>
+      <div style="font-size:14px;color:var(--t3);">Tell us about yourself</div>
+    </div>
+    <!-- Avatar picker -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;" class="g">
+      <div class="av prof-av" style="width:64px;height:64px;font-size:22px;position:relative;">SN<div class="av-edit">✏️</div></div>
+      <div>
+        <div class="h4" style="margin-bottom:4px;">Profile Photo</div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:8px;">Upload a photo or choose an avatar</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-xs">📷 Upload</button>
+          <button class="btn btn-ghost btn-xs">😊 Avatar</button>
+        </div>
+      </div>
+    </div>
+    <div class="field"><div class="field-label">Full Name</div><input class="inp" placeholder="Your full name" value="Shoeb Akter Nafiz"></div>
+    <div class="field"><div class="field-label">Student / Employee ID</div><input class="inp" placeholder="e.g. 0242220005101898" value="0242220005101898"></div>
+    <div class="field"><div class="field-label">Date of Birth</div><input class="inp" type="date" value="2003-06-15"></div>
+    <div class="field"><div class="field-label">Phone Number</div><input class="inp" type="tel" placeholder="+880 ××× ×××××××"></div>
+    <div class="field"><div class="field-label">Bio / About</div><textarea class="inp" placeholder="Tell others a bit about yourself…">CSE student at DIU, passionate about algorithms and web dev. Team RedBlack 🔴⚫</textarea></div>
+    <button class="btn btn-brand" onclick="go('p-setup-academic')">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 5 — SETUP: ACADEMIC CREDENTIALS
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-setup-academic">
+  <div class="tbar">
+    <div class="tbar-row">
+      <div class="back-btn" onclick="go('p-setup-profile')">←</div>
+      <div style="font-size:12px;color:var(--t3);">Step 3 of 4</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="progress-bar-mini"><div class="pbm-fill" style="width:75%"></div></div>
+  </div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:20px;">
+      <div class="h1" style="margin-bottom:6px;">Academic Info</div>
+      <div style="font-size:14px;color:var(--t3);">Your credentials personalize your content</div>
+    </div>
+    <div class="field">
+      <div class="field-label">University / Institution</div>
+      <input class="inp" placeholder="e.g. Daffodil International University" value="Daffodil International University">
+    </div>
+    <div class="field">
+      <div class="field-label">Country</div>
+      <select class="inp">
+        <option>Bangladesh</option><option>India</option><option>Pakistan</option><option>USA</option><option>UK</option><option>Other</option>
+      </select>
+    </div>
+    <div class="inp-row c2" style="margin-bottom:14px;">
+      <div class="field" style="margin-bottom:0">
+        <div class="field-label">Department / Faculty</div>
+        <input class="inp" placeholder="e.g. CSE" value="CSE">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <div class="field-label">Degree / Program</div>
+        <select class="inp"><option>B.Sc</option><option>M.Sc</option><option>PhD</option><option>Diploma</option></select>
+      </div>
+    </div>
+    <div class="inp-row c2" style="margin-bottom:14px;">
+      <div class="field" style="margin-bottom:0">
+        <div class="field-label">Current Semester</div>
+        <select class="inp"><option>1st</option><option>2nd</option><option>3rd</option><option selected>4th</option><option>5th</option><option>6th</option><option>7th</option><option>8th</option></select>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <div class="field-label">Section / Batch</div>
+        <input class="inp" placeholder="e.g. 63_J" value="63_J">
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Academic Year</div>
+      <select class="inp"><option>2022–2023</option><option>2023–2024</option><option selected>2024–2025</option><option>2025–2026</option></select>
+    </div>
+    <!-- Subjects -->
+    <div class="field">
+      <div class="field-label" style="margin-bottom:10px;">Enrolled Subjects / Courses</div>
+      <div class="chip-row" id="subj-chips">
+        <div class="chip on" onclick="togChip(this)">CSE 221 — DSA</div>
+        <div class="chip on" onclick="togChip(this)">MATH 301</div>
+        <div class="chip on" onclick="togChip(this)">CSE 341</div>
+        <div class="chip" onclick="togChip(this)">CSE 482 — ML</div>
+        <div class="chip" onclick="togChip(this)">PHY 201</div>
+        <div class="chip" onclick="togChip(this)">ENG 101</div>
+        <div class="chip" style="color:var(--brand);border-color:rgba(78,110,255,0.3);" onclick="alert('Add custom subject')">+ Add</div>
+      </div>
+    </div>
+    <button class="btn btn-brand" onclick="go('p-setup-prefs')">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 6 — SETUP: PREFERENCES
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-setup-prefs">
+  <div class="tbar">
+    <div class="tbar-row">
+      <div class="back-btn" onclick="go('p-setup-academic')">←</div>
+      <div style="font-size:12px;color:var(--t3);">Step 4 of 4</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="progress-bar-mini"><div class="pbm-fill" style="width:95%"></div></div>
+  </div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:20px;">
+      <div class="h1" style="margin-bottom:6px;">Preferences</div>
+      <div style="font-size:14px;color:var(--t3);">Customize your learning experience</div>
+    </div>
+    <div class="g" style="padding:4px 6px;margin-bottom:14px;">
+      <div class="setrow" onclick="togToggle(this)">
+        <div class="set-ico" style="background:var(--brand-d);">🔔</div>
+        <div class="set-info"><div class="set-title">Deadline Reminders</div><div class="set-sub">Notify before assignments are due</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setrow" onclick="togToggle(this)">
+        <div class="set-ico" style="background:var(--green-d);">📥</div>
+        <div class="set-info"><div class="set-title">Auto-Download Materials</div><div class="set-sub">Save new content for offline access</div></div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setrow" onclick="togToggle(this)">
+        <div class="set-ico" style="background:var(--amber-d);">🔥</div>
+        <div class="set-info"><div class="set-title">Streak Notifications</div><div class="set-sub">Daily reminders to keep your streak</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setrow" onclick="togToggle(this)">
+        <div class="set-ico" style="background:var(--violet-d);">🌙</div>
+        <div class="set-info"><div class="set-title">Dark Mode</div><div class="set-sub">Follow system preference</div></div>
+        <div class="toggle on"></div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Preferred Learning Language</div>
+      <select class="inp"><option>English</option><option>Bangla</option><option>Hindi</option><option>Arabic</option></select>
+    </div>
+    <div class="field">
+      <div class="field-label">Daily Study Goal</div>
+      <select class="inp"><option>30 minutes</option><option>1 hour</option><option selected>2 hours</option><option>3+ hours</option></select>
+    </div>
+    <button class="btn btn-brand" onclick="triggerConfetti();setTimeout(()=>go('p-dashboard'),600);">🎉 Let's Go!</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 7 — DASHBOARD (MAIN)
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-dashboard" style="flex-direction:column;">
+  <!-- Header -->
+  <div style="padding:48px 16px 14px;flex-shrink:0;background:rgba(8,9,14,0.5);backdrop-filter:blur(12px);">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Thu, 26 Feb 2026</div>
+        <div class="h1" style="font-size:24px;">Good afternoon, <span class="grad">Shoeb</span> 👋</div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <div class="tag tag-b">🎓 Student</div>
+          <div class="tag tag-v">CSE · 63_J</div>
+          <div class="tag" style="background:var(--green-d);color:var(--green);border:1px solid rgba(45,212,160,0.2);">DIU</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <div class="icon-btn" onclick="openDrawer('p-notif')">🔔<div class="notif-dot"></div></div>
+        <div class="av icon-btn" style="font-size:13px;font-weight:800;" onclick="go('p-profile')">SN</div>
+      </div>
+    </div>
+  </div>
+  <!-- Scrollable body -->
+  <div class="scr" style="flex:1;padding:0 16px 8px;">
+    <!-- Progress hero -->
+    <div style="margin:0 0 14px;">
+      <div class="g press" style="padding:20px;position:relative;overflow:hidden;cursor:pointer;" onclick="go('p-progress')">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(78,110,255,0.13),rgba(167,139,255,0.07));border-radius:var(--r);pointer-events:none;"></div>
+        <div style="display:flex;align-items:center;gap:18px;position:relative;z-index:1;">
+          <div class="ring-w" style="width:78px;height:78px;">
+            <svg class="ring-svg" width="78" height="78" viewBox="0 0 78 78">
+              <circle class="rt" cx="39" cy="39" r="33"/>
+              <circle class="rf" cx="39" cy="39" r="33" stroke-dasharray="207" style="--end:52;"/>
+            </svg>
+            <div class="ring-inner"><div class="ring-pct" style="font-size:20px;">75%</div><div style="font-size:8px;color:var(--t3);letter-spacing:.4px;text-transform:uppercase;">Done</div></div>
+          </div>
+          <div style="flex:1;">
+            <div class="h3" style="margin-bottom:4px;">Semester Progress</div>
+            <div style="font-size:12px;color:var(--t3);margin-bottom:12px;">3 of 4 courses on track · Finals in 3 weeks</div>
+            <div style="margin-bottom:6px;">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t4);margin-bottom:4px;"><span>CSE 221</span><span>72%</span></div>
+              <div class="mbar"><div class="mfill b" style="width:72%;animation-delay:.3s"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t4);margin-bottom:4px;"><span>MATH 301</span><span>45%</span></div>
+              <div class="mbar"><div class="mfill a" style="width:45%;animation-delay:.5s"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Stats trio -->
+    <div class="strio fa d1">
+      <div class="g stile press"><div style="font-size:20px;">🔥</div><div class="stv">14</div><div class="stl">Streak</div></div>
+      <div class="g stile press"><div style="font-size:20px;">⚡</div><div class="stv">2.4k</div><div class="stl">XP</div></div>
+      <div class="g stile press"><div style="font-size:20px;">🏅</div><div class="stv">4</div><div class="stl">Badges</div></div>
+    </div>
+    <!-- Quick access -->
+    <div class="sec fa d2"><div class="sec-t">Quick Access</div></div>
+    <div class="pinner fa d2">
+      <div class="g ptile press" onclick="go('p-quiz')"><div class="pt-ico">🎯</div><div class="pt-t">Demo Quiz</div><div class="pt-s">3 quizzes due</div><div class="tag tag-a">Due Soon</div></div>
+      <div class="g ptile press" onclick="go('p-collab')"><div class="pt-ico">🤝</div><div class="pt-t">Study Groups</div><div class="pt-s">2 new messages</div><div class="tag tag-b">Active</div></div>
+      <div class="g ptile press" onclick="go('p-offline')"><div class="pt-ico">📥</div><div class="pt-t">Offline Files</div><div class="pt-s">7 saved</div><div class="tag tag-g">Synced</div></div>
+      <div class="g ptile press" onclick="go('p-assignments')"><div class="pt-ico">📋</div><div class="pt-t">Assignments</div><div class="pt-s">2 pending</div><div class="tag tag-r">Pending</div></div>
+    </div>
+    <!-- Continue learning -->
+    <div class="sec fa d3"><div class="sec-t">Continue Learning</div><div class="sec-a">All courses</div></div>
+    <div class="scrx" style="margin:0 -16px;padding:0 16px;margin-bottom:4px;" class="fa d3">
+      <div class="g cc" style="width:195px;" class="fa d3">
+        <div class="cc-thumb t1"><div class="cc-badge">CSE 221</div>💻</div>
+        <div class="cc-body">
+          <div class="tag tag-b" style="margin-bottom:6px;">Core · CSE</div>
+          <div class="h4" style="margin-bottom:2px;">Data Structures &amp; Algorithms</div>
+          <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">Prof. Rahman</div>
+          <div class="mbar" style="margin-bottom:8px;"><div class="mfill b" style="width:72%;animation-delay:.4s"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:10px;color:var(--t4);">72%</div>
+            <button class="btn btn-brand btn-xs" onclick="triggerConfetti(event)">Resume</button>
+          </div>
+        </div>
+      </div>
+      <div class="g cc" style="width:195px;">
+        <div class="cc-thumb t2"><div class="cc-badge">MATH 301</div>🔢</div>
+        <div class="cc-body">
+          <div class="tag tag-a" style="margin-bottom:6px;">Math</div>
+          <div class="h4" style="margin-bottom:2px;">Discrete Mathematics</div>
+          <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">Dr. Hasan</div>
+          <div class="mbar" style="margin-bottom:8px;"><div class="mfill a" style="width:45%;animation-delay:.5s"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:10px;color:var(--t4);">45%</div>
+            <button class="btn btn-brand btn-xs">Resume</button>
+          </div>
+        </div>
+      </div>
+      <div class="g cc" style="width:195px;">
+        <div class="cc-thumb t3"><div class="cc-badge">CSE 341</div>🌐</div>
+        <div class="cc-body">
+          <div class="tag tag-g" style="margin-bottom:6px;">Networks</div>
+          <div class="h4" style="margin-bottom:2px;">Computer Networks</div>
+          <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">Dr. Karim</div>
+          <div class="mbar" style="margin-bottom:8px;"><div class="mfill g" style="width:88%;animation-delay:.6s"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:10px;color:var(--t4);">88%</div>
+            <button class="btn btn-brand btn-xs">Resume</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Weekly graph -->
+    <div class="sec fa d4" style="margin-top:20px;"><div class="sec-t">Weekly Activity</div></div>
+    <div class="g fa d4" style="padding:16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div><div style="font-size:13px;font-weight:600;color:var(--t1);">Study Hours</div><div style="font-size:11px;color:var(--t4);">Feb 20–26</div></div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800;color:var(--t1);">11.5 <span style="font-size:12px;color:var(--t4);font-family:'Instrument Sans',sans-serif;font-weight:400;">hrs</span></div>
+      </div>
+      <div class="gbars">
+        <div class="gbcol"><div class="gbbar dim" style="height:35%;animation-delay:.1s"></div><div class="gbday">M</div></div>
+        <div class="gbcol"><div class="gbbar lit" style="height:60%;animation-delay:.17s"></div><div class="gbday">T</div></div>
+        <div class="gbcol"><div class="gbbar lit" style="height:82%;animation-delay:.24s"></div><div class="gbday">W</div></div>
+        <div class="gbcol"><div class="gbbar dim" style="height:45%;animation-delay:.31s"></div><div class="gbday">T</div></div>
+        <div class="gbcol"><div class="gbbar lit" style="height:70%;animation-delay:.38s"></div><div class="gbday">F</div></div>
+        <div class="gbcol"><div class="gbbar dim" style="height:28%;animation-delay:.45s"></div><div class="gbday">S</div></div>
+        <div class="gbcol"><div class="gbbar tod" style="height:96%;animation-delay:.52s"></div><div class="gbday" style="color:var(--violet);">S</div></div>
+      </div>
+    </div>
+    <!-- Deadlines -->
+    <div class="sec fa d5"><div class="sec-t">Upcoming Deadlines</div><div class="sec-a">All tasks</div></div>
+    <div class="g fa d5" style="padding:4px 0;margin-bottom:14px;">
+      <div class="dlitem press">
+        <div class="dl-ico" style="background:var(--red-d);border:1px solid rgba(255,92,92,0.15);">📄</div>
+        <div class="dl-info"><div class="dl-t">DSA Assignment 3</div><div class="dl-s">CSE 221 · Upload PDF</div></div>
+        <div class="dl-time" style="color:var(--red);">2 days</div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="dlitem press">
+        <div class="dl-ico" style="background:var(--amber-d);border:1px solid rgba(245,166,35,0.15);">📝</div>
+        <div class="dl-info"><div class="dl-t">Demo Quiz — Discrete Math</div><div class="dl-s">MATH 301 · 20 questions</div></div>
+        <div class="dl-time" style="color:var(--amber);">4 days</div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="dlitem press">
+        <div class="dl-ico" style="background:var(--green-d);border:1px solid rgba(45,212,160,0.15);">📊</div>
+        <div class="dl-info"><div class="dl-t">Networks Midterm Project</div><div class="dl-s">CSE 341 · Group submission</div></div>
+        <div class="dl-time" style="color:var(--green);">1 week</div>
+      </div>
+    </div>
+    <!-- Recommended -->
+    <div class="sec"><div class="sec-t">Recommended for You</div></div>
+    <div class="g press" style="padding:16px;margin-bottom:24px;cursor:pointer;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(45,212,160,0.08),rgba(8,145,178,0.05));border-radius:var(--r);pointer-events:none;"></div>
+      <div style="position:relative;z-index:1;">
+        <div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">✦ AI Recommendation</div>
+        <div class="h3" style="margin-bottom:4px;">Review Ch.7 — Binary Trees</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5;">Based on your quiz performance, reinforcing tree traversal will boost your midterm readiness by ~18%.</div>
+      </div>
+    </div>
+  </div>
+  <!-- Bottom nav -->
+  <nav class="bnav">
+    <div class="ni on" onclick="go('p-dashboard')"><div class="ni-ico">🏠</div><div class="ni-lbl">Home</div></div>
+    <div class="ni" onclick="go('p-progress')"><div class="ni-ico">📈</div><div class="ni-lbl">Progress</div></div>
+    <div class="ni" onclick="go('p-upload')"><div class="ni-ico">➕</div><div class="ni-lbl">Upload</div></div>
+    <div class="ni" onclick="go('p-search')"><div class="ni-ico">🔍</div><div class="ni-lbl">Discover</div></div>
+    <div class="ni" onclick="go('p-profile')"><div class="ni-ico">👤</div><div class="ni-lbl">Profile</div></div>
+  </nav>
+  <!-- Overlays -->
+  <div class="overlay" id="ov-notif" onclick="closeDrawer('p-notif')"></div>
+  <div class="drawer" id="p-notif">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="h2">Notifications</div>
+      <div style="font-size:11px;color:var(--brand);cursor:pointer;font-weight:600;">Mark all read</div>
+    </div>
+    <div class="g" style="padding:12px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;">
+      <div class="pulse b" style="margin-top:5px;flex-shrink:0;"></div>
+      <div><div style="font-size:13px;color:var(--t2);line-height:1.5;">Your DSA Assignment 2 has been <strong style="color:var(--green);">graded</strong>. Score: 87/100</div><div style="font-size:10px;color:var(--t4);margin-top:4px;">5 min ago</div></div>
+    </div>
+    <div class="g" style="padding:12px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;">
+      <div class="pulse" style="margin-top:5px;flex-shrink:0;background:var(--amber);animation:plse 1.6s ease infinite;"></div>
+      <div><div style="font-size:13px;color:var(--t2);line-height:1.5;">New study material published for <strong style="color:var(--t1);">MATH 301</strong> — Chapter 8 Notes</div><div style="font-size:10px;color:var(--t4);margin-top:4px;">1 hour ago</div></div>
+    </div>
+    <div class="g" style="padding:12px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;opacity:.6;">
+      <div style="width:7px;height:7px;border-radius:50%;background:var(--t4);margin-top:5px;flex-shrink:0;"></div>
+      <div><div style="font-size:13px;color:var(--t2);line-height:1.5;">You've maintained a <strong style="color:var(--amber);">14-day</strong> learning streak! Keep it up 🔥</div><div style="font-size:10px;color:var(--t4);margin-top:4px;">3 hours ago</div></div>
+    </div>
+    <div class="g" style="padding:12px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;opacity:.6;">
+      <div style="width:7px;height:7px;border-radius:50%;background:var(--t4);margin-top:5px;flex-shrink:0;"></div>
+      <div><div style="font-size:13px;color:var(--t2);line-height:1.5;">Rafat shared 3 resources in <strong style="color:var(--t1);">DSA Study Circle</strong></div><div style="font-size:10px;color:var(--t4);margin-top:4px;">Yesterday</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 8 — PROFILE
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-profile">
+  <div class="prof-hero">
+    <div style="display:flex;align-items:flex-end;gap:16px;position:relative;z-index:1;">
+      <div class="av prof-av" style="width:72px;height:72px;font-size:24px;">SN<div class="av-edit">✏️</div></div>
+      <div style="flex:1;padding-bottom:4px;">
+        <div class="h2" style="margin-bottom:4px;">Shoeb Akter Nafiz</div>
+        <div style="font-size:12px;color:rgba(242,243,255,0.6);margin-bottom:8px;">ID: 0242220005101898</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div class="tag tag-b">🎓 Student</div>
+          <div class="tag tag-v">63_J · CSE</div>
+          <div class="tag tag-g">DIU</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scr" style="flex:1;padding:0 16px 8px;">
+    <!-- Stats -->
+    <div class="strio" style="margin-top:16px;">
+      <div class="g stile press"><div class="stv">3</div><div class="stl">Courses</div></div>
+      <div class="g stile press"><div class="stv">14</div><div class="stl">Streak</div></div>
+      <div class="g stile press"><div class="stv">2.4k</div><div class="stl">XP</div></div>
+    </div>
+    <!-- XP bar -->
+    <div class="g" style="padding:16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="h4">Experience Points</div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:800;" class="grad-a">Lv. 8 Scholar</div>
+      </div>
+      <div class="xpbar" style="margin-bottom:6px;"></div>
+      <div style="font-size:11px;color:var(--t4);">2,400 / 3,500 XP · 680 to Level 9</div>
+    </div>
+    <!-- Academic details -->
+    <div class="sec"><div class="sec-t">Academic Details</div><div class="sec-a" onclick="go('p-setup-academic')">Edit</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div style="padding:12px 14px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--t3);font-weight:500;">University</div><div style="font-size:12px;color:var(--t2);font-weight:600;">Daffodil International University</div>
+      </div>
+      <div style="padding:12px 14px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--t3);font-weight:500;">Department</div><div style="font-size:12px;color:var(--t2);font-weight:600;">Computer Science &amp; Engineering</div>
+      </div>
+      <div style="padding:12px 14px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--t3);font-weight:500;">Semester</div><div style="font-size:12px;color:var(--t2);font-weight:600;">4th Semester</div>
+      </div>
+      <div style="padding:12px 14px;display:flex;justify-content:space-between;">
+        <div style="font-size:12px;color:var(--t3);font-weight:500;">Subjects</div><div class="tag tag-b">CSE 221 · MATH 301 · CSE 341</div>
+      </div>
+    </div>
+    <!-- Badges -->
+    <div class="sec"><div class="sec-t">Achievements</div><div class="sec-a">All</div></div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none;margin-bottom:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;cursor:pointer;">
+        <div style="width:50px;height:50px;border-radius:13px;background:linear-gradient(135deg,rgba(245,166,35,.3),rgba(217,119,6,.2));display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);">🏆</div>
+        <div style="font-size:9px;color:var(--t3);font-weight:600;">Top Scorer</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;cursor:pointer;">
+        <div style="width:50px;height:50px;border-radius:13px;background:var(--brand-d);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(78,110,255,0.2);">🔥</div>
+        <div style="font-size:9px;color:var(--t3);font-weight:600;">14-Day Streak</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;cursor:pointer;">
+        <div style="width:50px;height:50px;border-radius:13px;background:var(--green-d);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(45,212,160,0.2);">⚡</div>
+        <div style="font-size:9px;color:var(--t3);font-weight:600;">Quiz Master</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;cursor:pointer;opacity:.35;">
+        <div style="width:50px;height:50px;border-radius:13px;background:var(--s1);display:flex;align-items:center;justify-content:center;font-size:22px;border:1.5px dashed var(--border);">🚀</div>
+        <div style="font-size:9px;color:var(--t4);font-weight:600;">Locked</div>
+      </div>
+    </div>
+    <!-- Settings -->
+    <div class="sec"><div class="sec-t">Settings</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div class="setrow" onclick="go('p-settings')">
+        <div class="set-ico" style="background:var(--brand-d);">⚙️</div>
+        <div class="set-info"><div class="set-title">Account Settings</div><div class="set-sub">Security, notifications, preferences</div></div>
+        <div class="chev">›</div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow" onclick="go('p-setup-academic')">
+        <div class="set-ico" style="background:var(--green-d);">🎓</div>
+        <div class="set-info"><div class="set-title">Academic Profile</div><div class="set-sub">University, department, subjects</div></div>
+        <div class="chev">›</div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow">
+        <div class="set-ico" style="background:var(--amber-d);">🌙</div>
+        <div class="set-info"><div class="set-title">Appearance</div><div class="set-sub">Dark mode, font size, language</div></div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="color:var(--red);border-color:rgba(255,92,92,0.2);margin-bottom:8px;" onclick="go('p-splash')">Sign Out</button>
+  </div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('p-dashboard')"><div class="ni-ico">🏠</div><div class="ni-lbl">Home</div></div>
+    <div class="ni" onclick="go('p-progress')"><div class="ni-ico">📈</div><div class="ni-lbl">Progress</div></div>
+    <div class="ni" onclick="go('p-upload')"><div class="ni-ico">➕</div><div class="ni-lbl">Upload</div></div>
+    <div class="ni" onclick="go('p-search')"><div class="ni-ico">🔍</div><div class="ni-lbl">Discover</div></div>
+    <div class="ni on"><div class="ni-ico">👤</div><div class="ni-lbl">Profile</div></div>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 9 — SETTINGS
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-settings">
+  <div class="tbar"><div class="tbar-row"><div class="back-btn" onclick="go('p-profile')">←</div><div class="h3">Settings</div><div style="width:36px;"></div></div></div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div class="sec" style="margin-top:4px;"><div class="sec-t">Account</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div class="setrow"><div class="set-ico" style="background:var(--brand-d);">🔐</div><div class="set-info"><div class="set-title">Change Password</div><div class="set-sub">Last changed 3 months ago</div></div><div class="chev">›</div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow"><div class="set-ico" style="background:var(--green-d);">📧</div><div class="set-info"><div class="set-title">Email Address</div><div class="set-sub">shoeb@diu.edu.bd</div></div><div class="chev">›</div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow"><div class="set-ico" style="background:var(--violet-d);">🔗</div><div class="set-info"><div class="set-title">Linked Accounts</div><div class="set-sub">Google, GitHub</div></div><div class="chev">›</div></div>
+    </div>
+    <div class="sec"><div class="sec-t">Notifications</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div class="setrow" onclick="togToggle(this)"><div class="set-ico" style="background:var(--amber-d);">🔔</div><div class="set-info"><div class="set-title">Deadline Reminders</div><div class="set-sub">Before assignments are due</div></div><div class="toggle on"></div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow" onclick="togToggle(this)"><div class="set-ico" style="background:var(--green-d);">📚</div><div class="set-info"><div class="set-title">New Content Published</div><div class="set-sub">When teacher uploads materials</div></div><div class="toggle on"></div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow" onclick="togToggle(this)"><div class="set-ico" style="background:var(--pink-d);">🤝</div><div class="set-info"><div class="set-title">Group Messages</div><div class="set-sub">Study group activity</div></div><div class="toggle"></div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow" onclick="togToggle(this)"><div class="set-ico" style="background:var(--brand-d);">⚡</div><div class="set-info"><div class="set-title">Assignment Graded</div><div class="set-sub">When scores are available</div></div><div class="toggle on"></div></div>
+    </div>
+    <div class="sec"><div class="sec-t">Privacy</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div class="setrow" onclick="togToggle(this)"><div class="set-ico" style="background:var(--violet-d);">👁️</div><div class="set-info"><div class="set-title">Public Profile</div><div class="set-sub">Others can see your stats</div></div><div class="toggle on"></div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="setrow" onclick="togToggle(this)"><div class="set-ico" style="background:var(--green-d);">📊</div><div class="set-info"><div class="set-title">Analytics Sharing</div><div class="set-sub">Help improve the platform</div></div><div class="toggle"></div></div>
+    </div>
+    <button class="btn" style="background:var(--red-d);color:var(--red);border:1px solid rgba(255,92,92,0.2);margin-bottom:8px;">🗑️ Delete Account</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 10 — UPLOAD CONTENT
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-upload">
+  <div class="tbar"><div class="tbar-row"><div class="back-btn" onclick="go('p-dashboard')">←</div><div class="h3">Upload Content</div><div style="width:36px;"></div></div></div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="margin-bottom:16px;font-size:14px;color:var(--t3);">Share notes, files &amp; resources with your class</div>
+    <!-- Upload zone -->
+    <div class="upload-zone" style="margin-bottom:20px;" onclick="alert('File picker would open here')">
+      <div class="uz-icon">📁</div>
+      <div class="uz-title">Tap to upload files</div>
+      <div class="uz-sub">PDFs, notes, images, audio, video · Max 50MB per file</div>
+      <div class="uz-types">
+        <div class="tag tag-r">PDF</div><div class="tag tag-b">DOCX</div><div class="tag tag-g">MP4</div><div class="tag tag-a">PPTX</div><div class="tag tag-v">PNG/JPG</div>
+      </div>
+    </div>
+    <div class="field"><div class="field-label">Title</div><input class="inp" placeholder="e.g. DSA Chapter 7 — Binary Trees Notes"></div>
+    <div class="field"><div class="field-label">Description</div><textarea class="inp" placeholder="Describe this material briefly…"></textarea></div>
+    <div class="field">
+      <div class="field-label">Category</div>
+      <select class="inp"><option>Lecture Notes</option><option>Assignment</option><option>Past Paper</option><option>Reference Book</option><option>Video Lecture</option><option>Summary / Cheat Sheet</option></select>
+    </div>
+    <div class="inp-row c2" style="margin-bottom:14px;">
+      <div class="field" style="margin-bottom:0"><div class="field-label">Course</div><select class="inp"><option>CSE 221 — DSA</option><option>MATH 301</option><option>CSE 341</option></select></div>
+      <div class="field" style="margin-bottom:0"><div class="field-label">Visibility</div><select class="inp"><option>My Courses</option><option>Section 63_J</option><option>Public — All</option><option>Private</option></select></div>
+    </div>
+    <div class="field"><div class="field-label">Tags (optional)</div><input class="inp" placeholder="e.g. midterm, trees, recursion"></div>
+    <div class="g" style="padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:20px;">📂</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">DSA_Chapter7_Notes.pdf</div>
+        <div style="font-size:11px;color:var(--t3);">2.4 MB · Ready to upload</div>
+      </div>
+      <div style="color:var(--green);font-size:16px;">✓</div>
+    </div>
+    <button class="btn btn-brand" onclick="triggerConfetti();setTimeout(()=>go('p-dashboard'),600);">Publish Material</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 11 — DISCOVER / SEARCH
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-search">
+  <div style="padding:48px 16px 0;flex-shrink:0;">
+    <div class="h1" style="margin-bottom:12px;">Discover</div>
+    <div style="display:flex;gap:8px;background:var(--s1);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 14px;margin-bottom:12px;" id="search-focus" onclick="this.style.borderColor='rgba(78,110,255,0.5)'">
+      <span style="font-size:16px;color:var(--t4);">🔍</span>
+      <input style="flex:1;background:none;border:none;outline:none;font-family:'Instrument Sans',sans-serif;font-size:14px;color:var(--t1);" placeholder="Search courses, notes, quizzes…">
+    </div>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;">
+      <div class="chip on" onclick="togChip(this)">All</div>
+      <div class="chip" onclick="togChip(this)">CSE</div>
+      <div class="chip" onclick="togChip(this)">MATH</div>
+      <div class="chip" onclick="togChip(this)">Physics</div>
+      <div class="chip" onclick="togChip(this)">Notes</div>
+      <div class="chip" onclick="togChip(this)">Videos</div>
+      <div class="chip" onclick="togChip(this)">Quizzes</div>
+    </div>
+  </div>
+  <div class="scr" style="padding:4px 16px 8px;">
+    <div class="sec" style="margin-top:4px;"><div class="sec-t">Featured Courses</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div class="g press" style="display:flex;align-items:center;gap:12px;padding:13px 14px;">
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(78,110,255,.55),rgba(124,58,237,.45));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💻</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;font-weight:700;color:#8BA4FF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">CSE 221</div>
+          <div class="h4" style="margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Data Structures &amp; Algorithms</div>
+          <div style="font-size:11px;color:var(--t3);display:flex;gap:8px;"><span style="color:var(--amber);">★ 4.9</span><span>1.2k students</span></div>
+        </div>
+        <div style="background:var(--green-d);color:var(--green);font-size:11px;font-weight:700;padding:5px 11px;border-radius:8px;white-space:nowrap;">Enrolled</div>
+      </div>
+      <div class="g press" style="display:flex;align-items:center;gap:12px;padding:13px 14px;">
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(244,114,182,.5),rgba(167,139,255,.45));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🧬</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">CSE 482</div>
+          <div class="h4" style="margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Machine Learning Basics</div>
+          <div style="font-size:11px;color:var(--t3);display:flex;gap:8px;"><span style="color:var(--amber);">★ 5.0</span><span>620 students</span></div>
+        </div>
+        <button class="btn btn-brand btn-xs">+ Enroll</button>
+      </div>
+      <div class="g press" style="display:flex;align-items:center;gap:12px;padding:13px 14px;">
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(45,212,160,.5),rgba(8,145,178,.45));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚙️</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">CSE 315</div>
+          <div class="h4" style="margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Operating Systems</div>
+          <div style="font-size:11px;color:var(--t3);display:flex;gap:8px;"><span style="color:var(--amber);">★ 4.6</span><span>754 students</span></div>
+        </div>
+        <button class="btn btn-brand btn-xs">+ Enroll</button>
+      </div>
+    </div>
+    <!-- Empty state -->
+    <div class="g" style="padding:4px 0;margin-bottom:8px;">
+      <div class="empty"><div class="empty-ico">🔍</div><div class="empty-t">Search for anything</div><div class="empty-s">Notes, quizzes, course materials across all universities</div></div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('p-dashboard')"><div class="ni-ico">🏠</div><div class="ni-lbl">Home</div></div>
+    <div class="ni" onclick="go('p-progress')"><div class="ni-ico">📈</div><div class="ni-lbl">Progress</div></div>
+    <div class="ni" onclick="go('p-upload')"><div class="ni-ico">➕</div><div class="ni-lbl">Upload</div></div>
+    <div class="ni on"><div class="ni-ico">🔍</div><div class="ni-lbl">Discover</div></div>
+    <div class="ni" onclick="go('p-profile')"><div class="ni-ico">👤</div><div class="ni-lbl">Profile</div></div>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 12 — PROGRESS
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-progress">
+  <div style="padding:48px 16px 14px;flex-shrink:0;"><div class="h1"><span class="grad">Progress</span> &amp; Analytics</div><div style="font-size:14px;color:var(--t3);margin-top:4px;">Your academic performance overview</div></div>
+  <div class="scr" style="padding:0 16px 8px;">
+    <div class="sec" style="margin-top:4px;"><div class="sec-t">Course Milestones</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div class="g press" style="padding:15px;"><div style="font-size:20px;margin-bottom:6px;">💻</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800;color:var(--t1);margin-bottom:2px;">72%</div><div style="font-size:11px;color:var(--t3);margin-bottom:8px;">CSE 221 · DSA</div><div class="mbar"><div class="mfill b" style="width:72%"></div></div></div>
+      <div class="g press" style="padding:15px;"><div style="font-size:20px;margin-bottom:6px;">🔢</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800;color:var(--t1);margin-bottom:2px;">45%</div><div style="font-size:11px;color:var(--t3);margin-bottom:8px;">MATH 301</div><div class="mbar"><div class="mfill a" style="width:45%"></div></div></div>
+      <div class="g press" style="padding:15px;"><div style="font-size:20px;margin-bottom:6px;">🌐</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800;color:var(--t1);margin-bottom:2px;">88%</div><div style="font-size:11px;color:var(--t3);margin-bottom:8px;">CSE 341 · Networks</div><div class="mbar"><div class="mfill g" style="width:88%"></div></div></div>
+      <div class="g press" style="padding:15px;"><div style="font-size:20px;margin-bottom:6px;">🧮</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800;color:var(--t1);margin-bottom:2px;">61%</div><div style="font-size:11px;color:var(--t3);margin-bottom:8px;">PHY 201</div><div class="mbar"><div class="mfill r" style="width:61%"></div></div></div>
+    </div>
+    <div class="sec"><div class="sec-t">Weekly Graph</div></div>
+    <div class="g" style="padding:16px;margin-bottom:14px;">
+      <div class="gbars">
+        <div class="gbcol"><div class="gbbar dim" style="height:35%;animation-delay:.1s"></div><div class="gbday">M</div></div>
+        <div class="gbcol"><div class="gbbar lit" style="height:60%;animation-delay:.17s"></div><div class="gbday">T</div></div>
+        <div class="gbcol"><div class="gbbar lit" style="height:82%;animation-delay:.24s"></div><div class="gbday">W</div></div>
+        <div class="gbcol"><div class="gbbar dim" style="height:45%;animation-delay:.31s"></div><div class="gbday">T</div></div>
+        <div class="gbcol"><div class="gbbar lit" style="height:70%;animation-delay:.38s"></div><div class="gbday">F</div></div>
+        <div class="gbcol"><div class="gbbar dim" style="height:28%;animation-delay:.45s"></div><div class="gbday">S</div></div>
+        <div class="gbcol"><div class="gbbar tod" style="height:96%;animation-delay:.52s"></div><div class="gbday" style="color:var(--violet);">S</div></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-t">XP &amp; Level</div></div>
+    <div class="g" style="padding:16px;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="h4">2,400 / 3,500 XP</div><div class="grad-a" style="font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:800;">Lv. 8 · Scholar</div></div>
+      <div class="xpbar" style="margin-bottom:6px;"></div>
+      <div style="font-size:11px;color:var(--t4);">680 XP to reach Level 9 — Expert</div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('p-dashboard')"><div class="ni-ico">🏠</div><div class="ni-lbl">Home</div></div>
+    <div class="ni on"><div class="ni-ico">📈</div><div class="ni-lbl">Progress</div></div>
+    <div class="ni" onclick="go('p-upload')"><div class="ni-ico">➕</div><div class="ni-lbl">Upload</div></div>
+    <div class="ni" onclick="go('p-search')"><div class="ni-ico">🔍</div><div class="ni-lbl">Discover</div></div>
+    <div class="ni" onclick="go('p-profile')"><div class="ni-ico">👤</div><div class="ni-lbl">Profile</div></div>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 13 — QUIZ
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-quiz">
+  <div class="tbar"><div class="tbar-row"><div class="back-btn" onclick="go('p-dashboard')">←</div><div class="h3">Demo Quiz</div><div style="font-size:11px;color:var(--t3);">CSE 221</div></div></div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div class="g" style="padding:16px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;">Question 2 of 5</div>
+        <div style="background:var(--red-d);border:1px solid rgba(255,92,92,0.2);color:var(--red);font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:700;padding:4px 11px;border-radius:8px;">⏱ 08:42</div>
+      </div>
+      <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;margin-bottom:14px;"><div style="width:40%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--brand),var(--violet));animation:barsweep .8s ease"></div></div>
+      <div class="h3" style="line-height:1.4;">What is the time complexity of searching in a balanced Binary Search Tree?</div>
+    </div>
+    <div id="qopts" style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px;">
+      <div class="g press qopt" onclick="qPick(this,'w')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:var(--t2);"><div class="qbul">A</div>O(1) — Constant time</div>
+      <div class="g press qopt" onclick="qPick(this,'w')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:var(--t2);"><div class="qbul">B</div>O(n) — Linear time</div>
+      <div class="g press qopt" onclick="qPick(this,'c')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:var(--t2);"><div class="qbul">C</div>O(log n) — Logarithmic</div>
+      <div class="g press qopt" onclick="qPick(this,'w')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:var(--t2);"><div class="qbul">D</div>O(n²) — Quadratic</div>
+    </div>
+    <button id="qbtn" style="width:100%;padding:15px;border-radius:var(--r);background:var(--brand);border:none;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:white;transition:transform .18s;" onclick="qSubmit()" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''">Submit Answer</button>
+  </div>
+</div>
+<style>
+.qbul{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:700;color:var(--t3);flex-shrink:0;transition:all .2s;}
+.qopt.sel{background:var(--brand-d)!important;border-color:rgba(78,110,255,.4)!important;color:var(--t1)!important;}
+.qopt.sel .qbul{background:var(--brand);border-color:var(--brand);color:white;}
+.qopt.cor{background:var(--green-d)!important;border-color:rgba(45,212,160,.4)!important;color:var(--green)!important;}
+.qopt.cor .qbul{background:var(--green);border-color:var(--green);color:white;}
+.qopt.wrg{background:var(--red-d)!important;border-color:rgba(255,92,92,.3)!important;color:var(--red)!important;}
+.qopt.wrg .qbul{background:var(--red);border-color:var(--red);color:white;}
+</style>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 14 — OFFLINE
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-offline">
+  <div class="tbar"><div class="tbar-row"><div class="back-btn" onclick="go('p-dashboard')">←</div><div class="h3">Offline Reading</div><div style="width:36px;"></div></div></div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--green-d);border:1px solid rgba(45,212,160,.2);border-radius:var(--rsm);margin-bottom:14px;font-size:12px;color:var(--green);font-weight:500;">
+      <div class="pulse g" style="flex-shrink:0;"></div>All files synced · 2 min ago
+    </div>
+    <div class="g" style="padding:15px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:26px;font-weight:800;color:var(--t1);">120 MB</div><div style="font-size:11px;color:var(--t3);">of 350 MB used</div></div>
+        <div style="font-size:28px;">💾</div>
+      </div>
+      <div class="mbar" style="height:6px;margin-bottom:6px;"><div class="mfill b" style="width:34%"></div></div>
+      <div style="font-size:11px;color:var(--t4);">7 files · 230 MB free</div>
+    </div>
+    <div class="sec"><div class="sec-t">Downloaded Files</div><div class="sec-a">Manage</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div class="frow press"><div class="ficon">📄</div><div class="finfo"><div class="fname">DSA Chapter 7 — Binary Trees.pdf</div><div class="fmeta">CSE 221 · 2.4 MB · Dec 12</div></div><div style="color:var(--green);font-size:15px;">✓</div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="frow press"><div class="ficon">📝</div><div class="finfo"><div class="fname">Discrete Math Notes — Week 5.pdf</div><div class="fmeta">MATH 301 · 1.8 MB · Dec 10</div></div><div style="color:var(--green);font-size:15px;">✓</div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="frow press"><div class="ficon">🎬</div><div class="finfo"><div class="fname">Network Layers Explained.mp4</div><div class="fmeta">CSE 341 · 84 MB · Dec 8</div></div><div style="color:var(--green);font-size:15px;">✓</div></div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div class="frow press"><div class="ficon">📊</div><div class="finfo"><div class="fname">Midterm Revision Slides.pptx</div><div class="fmeta">CSE 221 · 5.2 MB · Dec 6</div></div><div style="color:var(--green);font-size:15px;">✓</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 15 — ASSIGNMENTS
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-assignments">
+  <div class="tbar"><div class="tbar-row"><div class="back-btn" onclick="go('p-dashboard')">←</div><div class="h3">Assignments</div><div style="width:36px;"></div></div></div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div class="sec" style="margin-top:4px;"><div class="sec-t">Pending</div><div class="tag tag-r">2</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div style="padding:15px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div class="tag tag-b">CSE 221</div><div class="dl-time" style="color:var(--red);font-size:11px;font-weight:700;">Due in 2 days</div>
+        </div>
+        <div class="h4" style="margin-bottom:4px;">DSA Assignment 3 — Binary Trees</div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:12px;line-height:1.5;">Implement BFS and DFS traversal. Submit as PDF with code screenshots.</div>
+        <div class="upload-zone" style="padding:16px;" onclick="alert('File upload')">
+          <div style="font-size:20px;">📎</div>
+          <div style="font-size:12px;color:var(--t3);">Attach your submission</div>
+        </div>
+      </div>
+      <div style="padding:15px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div class="tag tag-a">MATH 301</div><div class="dl-time" style="color:var(--amber);font-size:11px;font-weight:700;">Due in 5 days</div>
+        </div>
+        <div class="h4" style="margin-bottom:4px;">Problem Set 4 — Graph Theory</div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:12px;line-height:1.5;">Solve 10 problems on Euler paths and Hamiltonian cycles.</div>
+        <button class="btn btn-brand btn-sm">Upload Submission</button>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-t">Submitted</div></div>
+    <div class="g" style="padding:4px 0;margin-bottom:14px;">
+      <div style="padding:14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);">
+        <div style="flex:1;"><div class="tag tag-b" style="margin-bottom:5px;">CSE 221</div><div class="h4" style="margin-bottom:2px;">DSA Assignment 2</div><div style="font-size:11px;color:var(--t3);">Submitted Dec 10 · Awaiting grade</div></div>
+        <div class="tag tag-v">Submitted</div>
+      </div>
+      <div style="padding:14px;display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;"><div class="tag tag-g" style="margin-bottom:5px;">CSE 341</div><div class="h4" style="margin-bottom:2px;">Lab Report 3 — TCP/IP</div><div style="font-size:11px;color:var(--t3);">Graded · Score: 87/100</div></div>
+        <div class="tag tag-g">87/100</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 16 — COLLAB
+═══════════════════════════════════════════════ -->
+<div class="page" id="p-collab">
+  <div class="tbar"><div class="tbar-row"><div class="back-btn" onclick="go('p-dashboard')">←</div><div class="h3">Study Groups</div><div style="width:36px;"></div></div></div>
+  <div class="scr" style="padding:0 16px 24px;">
+    <div class="sec" style="margin-top:4px;"><div class="sec-t">Your Groups</div><div class="sec-a">+ New</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <div class="g press" style="display:flex;align-items:center;gap:12px;padding:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--brand-d);border:1px solid rgba(78,110,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">💻</div>
+        <div style="flex:1;min-width:0;">
+          <div class="h4" style="margin-bottom:3px;">DSA Study Circle</div>
+          <div style="font-size:11px;color:var(--t3);display:flex;gap:8px;align-items:center;">
+            <div class="avstack"><div class="av-xs" style="background:var(--brand);">S</div><div class="av-xs" style="background:var(--amber);">R</div><div class="av-xs" style="background:var(--green);">M</div></div>8 members
+          </div>
+        </div>
+        <div style="background:var(--red);color:white;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</div>
+      </div>
+      <div class="g press" style="display:flex;align-items:center;gap:12px;padding:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--green-d);border:1px solid rgba(45,212,160,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌐</div>
+        <div style="flex:1;min-width:0;">
+          <div class="h4" style="margin-bottom:3px;">Networks Lab Group</div>
+          <div style="font-size:11px;color:var(--t3);display:flex;gap:8px;align-items:center;">
+            <div class="avstack"><div class="av-xs" style="background:var(--green);">N</div><div class="av-xs" style="background:var(--brand);">A</div></div>5 members
+          </div>
+        </div>
+        <div style="background:var(--red);color:white;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;">1</div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-t">Discover Groups</div></div>
+    <div class="g" style="padding:16px;">
+      <div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:14px;">Browse 24 open groups across universities. Join by subject, course, or semester.</div>
+      <div class="chip-row">
+        <div class="chip on">#CSE</div><div class="chip">#MATH</div><div class="chip">#Semester 3</div><div class="chip">#Exam Prep</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── NAVIGATION ───
+function go(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const p = document.getElementById(id);
+  if (p) p.classList.add('active');
+}
+
+// ─── ROLE SELECT ───
+function selRole(el, r) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ─── CHIP TOGGLE ───
+function togChip(el) {
+  el.classList.toggle('on');
+}
+
+// ─── TOGGLE SWITCH ───
+function togToggle(row) {
+  const t = row.querySelector('.toggle');
+  if (t) t.classList.toggle('on');
+}
+
+// ─── NOTIFICATION DRAWER ───
+function openDrawer(id) {
+  document.getElementById('p-notif').classList.add('open');
+  const ov = document.getElementById('ov-notif');
+  ov.style.display = 'block';
+  requestAnimationFrame(() => ov.style.opacity = '1');
+}
+function closeDrawer() {
+  document.getElementById('p-notif').classList.remove('open');
+  const ov = document.getElementById('ov-notif');
+  ov.style.opacity = '0';
+  setTimeout(() => ov.style.display = 'none', 280);
+}
+
+// ─── QUIZ ───
+let qSel = null;
+function qPick(el, type) {
+  if (document.querySelector('.qopt.cor,.qopt.wrg')) return;
+  document.querySelectorAll('.qopt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  qSel = { el, type };
+}
+function qSubmit() {
+  if (!qSel) return;
+  document.querySelectorAll('.qopt').forEach(o => o.onclick = null);
+  qSel.el.classList.remove('sel');
+  if (qSel.type === 'c') {
+    qSel.el.classList.add('cor');
+    triggerConfetti();
+    document.getElementById('qbtn').textContent = '🎉 Correct! Next →';
+    document.getElementById('qbtn').style.background = 'var(--green)';
+  } else {
+    qSel.el.classList.add('wrg');
+    document.querySelectorAll('.qopt')[2].classList.add('cor');
+    document.getElementById('qbtn').textContent = 'See Explanation →';
+    document.getElementById('qbtn').style.background = 'rgba(255,255,255,0.06)';
+  }
+}
+
+// ─── CONFETTI ───
+const CC = ['#4E6EFF','#A78BFF','#F5A623','#2DD4A0','#FF5C5C','#F472B6'];
+function triggerConfetti(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const w = document.getElementById('cnf');
+  w.innerHTML = ''; w.style.display = 'block';
+  for (let i = 0; i < 52; i++) {
+    const d = document.createElement('div');
+    d.className = 'co';
+    const s = 5 + Math.random() * 7;
+    d.style.cssText = `left:${Math.random()*100}%;top:-5%;width:${s}px;height:${s}px;background:${CC[Math.floor(Math.random()*CC.length)]};border-radius:${Math.random()>.4?'50%':'2px'};animation-delay:${Math.random()*.8}s;animation-duration:${1.2+Math.random()*.8}s;`;
+    w.appendChild(d);
+  }
+  setTimeout(() => { w.style.display = 'none'; w.innerHTML = ''; }, 2600);
+}
+</script>
+</div>
+</body>
+</html>
