@@ -229,3 +229,16 @@ class ProgressView extends GetView<ProgressController> {
       ),
     );
   }
+
+    /// WEEKLY GRAPH BAR
+  Widget bar(double height) {
+    return Container(
+      width: 18,
+      height: 80 * height,
+      decoration: BoxDecoration(
+        color: Colors.deepPurple,
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
+  }
+}
