@@ -11,3 +11,11 @@ class ProgressController extends GetxController {
   final AuthRepository authRepository = Get.find();
   final CourseRepository courseRepository = Get.find();
   final FirebaseProvider firebaseProvider = Get.find();
+
+   var isLoading = true.obs;
+
+  final user = Rxn<UserModel>();
+
+  final courses = <CourseModel>[].obs;
+
+  final progressMap = <String, double>{}.obs;
