@@ -187,3 +187,45 @@ class ProgressView extends GetView<ProgressController> {
       ),
     );
   }
+  /// COURSE MILESTONE CARD
+  Widget milestoneCard(double progress, String code, String title) {
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          const Icon(Icons.school, color: Colors.white),
+
+          const SizedBox(height: 10),
+
+          Text(
+            "${(progress * 100).toInt()}%",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          Text(
+            "$code • $title",
+            style: const TextStyle(color: Colors.white70),
+          ),
+
+          const SizedBox(height: 10),
+
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.white12,
+          )
+
+        ],
+      ),
+    );
+  }
