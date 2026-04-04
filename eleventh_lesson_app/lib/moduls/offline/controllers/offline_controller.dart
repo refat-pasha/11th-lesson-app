@@ -15,3 +15,26 @@ class OfflineController extends GetxController {
     loadOfflineMaterials();
     super.onInit();
   }
+
+    void loadOfflineMaterials() {
+    try {
+      isLoading.value = true;
+
+      final storedData = _storage.read<List>(StorageKeys.offlineMaterials);
+
+      if (storedData != null) {
+        final materials = storedData.map((item) {
+          return MaterialModel.fromMap(
+            Map<String, dynamic>.from(item),
+            item['id'] ?? '',
+          );
+        }).toList();
+
+        offlineMaterials.assignAll(materials);
+      }
+    } catch (e) {
+      Get.snackbar("Offline Error", e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
