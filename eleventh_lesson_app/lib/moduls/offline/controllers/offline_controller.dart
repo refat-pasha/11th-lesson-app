@@ -9,3 +9,9 @@ class OfflineController extends GetxController {
 
   final RxList<MaterialModel> offlineMaterials = <MaterialModel>[].obs;
   final RxBool isLoading = false.obs;
+
+    @override
+  void onInit() {
+    loadOfflineMaterials();
+    super.onInit();
+  }
