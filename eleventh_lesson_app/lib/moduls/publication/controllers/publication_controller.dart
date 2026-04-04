@@ -47,3 +47,76 @@ class PublicationController extends GetxController {
     "Public",
     "Private"
   ]; 
+
+/// Pick File
+  Future<void> pickFile() async {
+
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      withData: true,
+    );
+
+    if (result != null) {
+
+      selectedFile = result.files.first;
+
+      fileName.value = selectedFile!.name;
+
+    }
+
+  }
+
+  /// Upload Material
+  Future<void> uploadMaterial() async {
+
+    if (selectedFile == null) {
+      Get.snackbar("Error", "Please select a file");
+      return;
+    }
+
+    if (titleController.text.isEmpty) {
+      Get.snackbar("Error", "Title is required");
+      return;
+    }
+
+    try {
+
+      isUploading.value = true;
+
+      /// Current user
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        Get.snackbar("Error", "User not logged in");
+        return;
+      }
+
+      final userId = user.uid;
+
+      /// Storage path
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child("materials/${selectedCourse.value}/${selectedFile!.name}");
+
+      /// Upload file
+      final uploadTask =
+          await storageRef.putData(selectedFile!.bytes!);
+
+      /// Get download URL
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+      /// Save metadata to Firestore
+      await firebaseProvider.materials().add({
+
+        "title": titleController.text,
+        "description": descriptionController.text,
+        "category": category.value,
+        "courseId": selectedCourse.value,
+        "visibility": visibility.value,
+        "tags": tagsController.text.split(","),
+        "fileName": selectedFile!.name,
+        "fileUrl": downloadUrl,
+        "uploadedBy": userId,
+        "createdAt": DateTime.now(),
+
+      });
