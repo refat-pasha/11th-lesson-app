@@ -7,7 +7,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../../../data/providers/firebase_provider.dart';
 
 class PublicationController extends GetxController {
-
   /// Firebase Provider
   final FirebaseProvider firebaseProvider = Get.find();
 
@@ -29,46 +28,28 @@ class PublicationController extends GetxController {
   var visibility = "My Courses".obs;
 
   /// Dropdown options
-  final categories = [
-    "Lecture Notes",
-    "Slides",
-    "Assignment",
-    "Exam Prep",
-  ];
+  final categories = ["Lecture Notes", "Slides", "Assignment", "Exam Prep"];
 
-  final courseNames = [
-    "CSE 221",
-    "MATH 301",
-    "CSE 341",
-  ];
+  final courseNames = ["CSE 221", "MATH 301", "CSE 341"];
 
-  final visibilityOptions = [
-    "My Courses",
-    "Public",
-    "Private"
-  ]; 
+  final visibilityOptions = ["My Courses", "Public", "Private"];
 
-/// Pick File
+  /// Pick File
   Future<void> pickFile() async {
-
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       withData: true,
     );
 
     if (result != null) {
-
       selectedFile = result.files.first;
 
       fileName.value = selectedFile!.name;
-
     }
-
   }
 
   /// Upload Material
   Future<void> uploadMaterial() async {
-
     if (selectedFile == null) {
       Get.snackbar("Error", "Please select a file");
       return;
@@ -80,7 +61,6 @@ class PublicationController extends GetxController {
     }
 
     try {
-
       isUploading.value = true;
 
       /// Current user
@@ -94,20 +74,18 @@ class PublicationController extends GetxController {
       final userId = user.uid;
 
       /// Storage path
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child("materials/${selectedCourse.value}/${selectedFile!.name}");
+      final storageRef = FirebaseStorage.instance.ref().child(
+        "materials/${selectedCourse.value}/${selectedFile!.name}",
+      );
 
       /// Upload file
-      final uploadTask =
-          await storageRef.putData(selectedFile!.bytes!);
+      final uploadTask = await storageRef.putData(selectedFile!.bytes!);
 
       /// Get download URL
       final downloadUrl = await uploadTask.ref.getDownloadURL();
 
       /// Save metadata to Firestore
       await firebaseProvider.materials().add({
-
         "title": titleController.text,
         "description": descriptionController.text,
         "category": category.value,
@@ -118,5 +96,44 @@ class PublicationController extends GetxController {
         "fileUrl": downloadUrl,
         "uploadedBy": userId,
         "createdAt": DateTime.now(),
-
       });
+
+      /// Reset form
+      clearForm();
+
+      Get.snackbar(
+        "Success",
+        "Material uploaded successfully",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Upload Error",
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isUploading.value = false;
+    }
+  }
+
+  /// Clear Form
+  void clearForm() {
+    titleController.clear();
+    descriptionController.clear();
+    tagsController.clear();
+
+    selectedFile = null;
+    fileName.value = "";
+  }
+
+  /// Dispose controllers
+  @override
+  void onClose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    tagsController.dispose();
+
+    super.onClose();
+  }
+}
