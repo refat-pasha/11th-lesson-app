@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
-import '../controllers/publication_controller.dart';
+import '../controllers/progress_controller.dart';
 
-class PublicationBinding extends Bindings {
+class ProgressBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<PublicationController>(() => PublicationController());
+    Get.lazyPut<ProgressController>(() => ProgressController());
   }
 }
