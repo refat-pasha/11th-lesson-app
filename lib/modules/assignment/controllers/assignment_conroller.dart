@@ -37,3 +37,15 @@ Future<void> fetchAssignments() async {
       isLoading.value = false;
     }
   }
+  
+Future<void> createAssignment(AssignmentModel assignment) async {
+    try {
+      await _assignmentRepository.createAssignment(assignment);
+      fetchAssignments();
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        e.toString(),
+      );
+    }
+  }
