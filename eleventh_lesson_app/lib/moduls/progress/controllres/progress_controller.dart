@@ -55,3 +55,50 @@ class ProgressController extends GetxController {
       isLoading.value = false;
     }
   }
+
+
+   Future<double> calculateCourseProgress(String courseId) async {
+    final firebaseUser = authRepository.currentUser;
+
+    if (firebaseUser == null) return 0;
+
+    /// total materials in course
+    final materials = await firebaseProvider
+        .materials()
+        .where("courseId", isEqualTo: courseId)
+        .get();
+
+    final total = materials.docs.length;
+
+    if (total == 0) return 0;
+
+    /// completed materials by user
+    final completed = await firebaseProvider
+        .materialViews()
+        .where("courseId", isEqualTo: courseId)
+        .where("userId", isEqualTo: firebaseUser.uid)
+        .get();
+
+    final done = completed.docs.length;
+
+    return done / total;
+  }
+
+  /// get progress for UI
+  double getProgress(String courseId) {
+    return progressMap[courseId] ?? 0;
+  }
+
+  /// XP progress
+  double get xpProgress {
+    final currentXP = user.value?.xp ?? 0;
+
+    const maxXP = 3500;
+
+    return currentXP / maxXP;
+  }
+
+  Future<void> refreshProgress() async {
+    await loadProgress();
+  }
+}
