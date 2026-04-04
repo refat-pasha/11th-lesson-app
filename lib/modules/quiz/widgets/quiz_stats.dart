@@ -149,3 +149,120 @@ return Column(
             border = AppTheme.brand.withOpacity(0.4);
             textColor = AppTheme.t1;
           }
+
+                  final i = e.key;
+          final opt = e.value;
+          final isSelected = selected == i;
+          final isCorrect = reviewed && i == q.correctIndex;
+          final isWrong = reviewed && isSelected && i != q.correctIndex;
+
+          Color bg = AppTheme.s1;
+          Color border = AppTheme.border;
+          Color textColor = AppTheme.t2;
+
+          if (isCorrect) {
+            bg = AppTheme.greenD;
+            border = AppTheme.green.withOpacity(0.4);
+            textColor = AppTheme.green;
+          } else if (isWrong) {
+            bg = AppTheme.redD;
+            border = AppTheme.red.withOpacity(0.3);
+            textColor = AppTheme.red;
+          } else if (isSelected && !reviewed) {
+            bg = AppTheme.brandD;
+            border = AppTheme.brand.withOpacity(0.4);
+            textColor = AppTheme.t1;
+          }
+                  final i = e.key;
+          final opt = e.value;
+          final isSelected = selected == i;
+          final isCorrect = reviewed && i == q.correctIndex;
+          final isWrong = reviewed && isSelected && i != q.correctIndex;
+
+          Color bg = AppTheme.s1;
+          Color border = AppTheme.border;
+          Color textColor = AppTheme.t2;
+
+          if (isCorrect) {
+            bg = AppTheme.greenD;
+            border = AppTheme.green.withOpacity(0.4);
+            textColor = AppTheme.green;
+          } else if (isWrong) {
+            bg = AppTheme.redD;
+            border = AppTheme.red.withOpacity(0.3);
+            textColor = AppTheme.red;
+          } else if (isSelected && !reviewed) {
+            bg = AppTheme.brandD;
+            border = AppTheme.brand.withOpacity(0.4);
+            textColor = AppTheme.t1;
+          }
+                  final i = e.key;
+          final opt = e.value;
+          final isSelected = selected == i;
+          final isCorrect = reviewed && i == q.correctIndex;
+          final isWrong = reviewed && isSelected && i != q.correctIndex;
+
+          Color bg = AppTheme.s1;
+          Color border = AppTheme.border;
+          Color textColor = AppTheme.t2;
+
+          if (isCorrect) {
+            bg = AppTheme.greenD;
+            border = AppTheme.green.withOpacity(0.4);
+            textColor = AppTheme.green;
+          } else if (isWrong) {
+            bg = AppTheme.redD;
+            border = AppTheme.red.withOpacity(0.3);
+            textColor = AppTheme.red;
+          } else if (isSelected && !reviewed) {
+            bg = AppTheme.brandD;
+            border = AppTheme.brand.withOpacity(0.4);
+            textColor = AppTheme.t1;
+          }
+                  final i = e.key;
+          final opt = e.value;
+          final isSelected = selected == i;
+          final isCorrect = reviewed && i == q.correctIndex;
+          final isWrong = reviewed && isSelected && i != q.correctIndex;
+
+          Color bg = AppTheme.s1;
+          Color border = AppTheme.border;
+          Color textColor = AppTheme.t2;
+
+          if (isCorrect) {
+            bg = AppTheme.greenD;
+            border = AppTheme.green.withOpacity(0.4);
+            textColor = AppTheme.green;
+          } else if (isWrong) {
+            bg = AppTheme.redD;
+            border = AppTheme.red.withOpacity(0.3);
+            textColor = AppTheme.red;
+          } else if (isSelected && !reviewed) {
+            bg = AppTheme.brandD;
+            border = AppTheme.brand.withOpacity(0.4);
+            textColor = AppTheme.t1;
+          }
+                  final i = e.key;
+          final opt = e.value;
+          final isSelected = selected == i;
+          final isCorrect = reviewed && i == q.correctIndex;
+          final isWrong = reviewed && isSelected && i != q.correctIndex;
+
+          Color bg = AppTheme.s1;
+          Color border = AppTheme.border;
+          Color textColor = AppTheme.t2;
+
+          if (isCorrect) {
+            bg = AppTheme.greenD;
+            border = AppTheme.green.withOpacity(0.4);
+            textColor = AppTheme.green;
+          } else if (isWrong) {
+            bg = AppTheme.redD;
+            border = AppTheme.red.withOpacity(0.3);
+            textColor = AppTheme.red;
+          } else if (isSelected && !reviewed) {
+            bg = AppTheme.brandD;
+            border = AppTheme.brand.withOpacity(0.4);
+            textColor = AppTheme.t1;
+          }
+          
