@@ -91,3 +91,4 @@ class UploadMaterialView extends GetView<PublicationController> {
             ),
 
             const SizedBox(height: 16),
+            
