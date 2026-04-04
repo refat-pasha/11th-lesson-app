@@ -28,9 +28,14 @@ class PublicationController extends GetxController {
   var visibility = "My Courses".obs;
 
   /// Dropdown options
-  final categories = ["Lecture Notes", "Slides", "Assignment", "Exam Prep"];
+  final categories = [
+    "Lecture Notes",
+    "Slides",
+    "Assignment",
+    "Exam Preperation"
+  ];
 
-  final courseNames = ["CSE 221", "MATH 301", "CSE 341"];
+  final courseNames = ["CSE 221", "MATH 301", "CSE 321"];
 
   final visibilityOptions = ["My Courses", "Public", "Private"];
 
@@ -75,8 +80,8 @@ class PublicationController extends GetxController {
 
       /// Storage path
       final storageRef = FirebaseStorage.instance.ref().child(
-        "materials/${selectedCourse.value}/${selectedFile!.name}",
-      );
+            "materials/${selectedCourse.value}/${selectedFile!.name}",
+          );
 
       /// Upload file
       final uploadTask = await storageRef.putData(selectedFile!.bytes!);
