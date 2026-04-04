@@ -25,3 +25,33 @@ class ProgressController extends GetxController {
     super.onInit();
     loadProgress();
   }
+ Future<void> loadProgress() async {
+    try {
+      isLoading.value = true;
+
+      final firebaseUser = authRepository.currentUser;
+
+      if (firebaseUser == null) return;
+
+      /// Load user profile
+      final profile = await authRepository.getUserProfile(firebaseUser.uid);
+
+      user.value = profile;
+
+      /// Load courses
+      final fetchedCourses = await courseRepository.getCourses();
+
+      courses.assignAll(fetchedCourses);
+
+      /// Calculate progress for each course
+      for (var course in fetchedCourses) {
+        final progress = await calculateCourseProgress(course.id);
+
+        progressMap[course.id] = progress;
+      }
+    } catch (e) {
+      Get.snackbar("Progress Error", e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
