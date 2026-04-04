@@ -53,3 +53,20 @@ class OfflineController extends GetxController {
       Get.snackbar("Save Failed", e.toString());
     }
   }
+
+   Future<void> removeOfflineMaterial(String materialId) async {
+    try {
+      offlineMaterials.removeWhere((m) => m.id == materialId);
+
+      final data = offlineMaterials.map((m) {
+        final map = m.toMap();
+        map['id'] = m.id;
+        return map;
+      }).toList();
+
+      await _storage.write(StorageKeys.offlineMaterials, data);
+    } catch (e) {
+      Get.snackbar("Remove Failed", e.toString());
+    }
+  }
+}
