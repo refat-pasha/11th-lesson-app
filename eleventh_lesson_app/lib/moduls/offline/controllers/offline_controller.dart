@@ -38,3 +38,18 @@ class OfflineController extends GetxController {
       isLoading.value = false;
     }
   }
+  Future<void> saveMaterialOffline(MaterialModel material) async {
+    try {
+      offlineMaterials.add(material);
+
+      final data = offlineMaterials.map((m) {
+        final map = m.toMap();
+        map['id'] = m.id;
+        return map;
+      }).toList();
+
+      await _storage.write(StorageKeys.offlineMaterials, data);
+    } catch (e) {
+      Get.snackbar("Save Failed", e.toString());
+    }
+  }
