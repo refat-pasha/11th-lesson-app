@@ -19,3 +19,9 @@ class ProgressController extends GetxController {
   final courses = <CourseModel>[].obs;
 
   final progressMap = <String, double>{}.obs;
+
+    @override
+  void onInit() {
+    super.onInit();
+    loadProgress();
+  }
