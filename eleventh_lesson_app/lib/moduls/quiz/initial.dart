@@ -9,3 +9,4 @@ class CollaborativeBinding extends Bindings {
     Get.lazyPut<CollaborativeController>(() => CollaborativeController());
   }
 }
+
