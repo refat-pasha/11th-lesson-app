@@ -146,3 +146,29 @@ class AssignmentController extends GetxController {
       Get.snackbar("Error", e.toString());
     }
   }
+
+  /// ================= GET STUDENT SUBMISSIONS =================
+  Future<void> fetchMySubmissions() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('assignment_submissions')
+          .where("userId", isEqualTo: user.uid)
+          .orderBy("submittedAt", descending: true)
+          .get();
+
+      final data = snapshot.docs.map((doc) {
+        return AssignmentSubmissionModel.fromMap(
+          doc.data(),
+          doc.id,
+        );
+      }).toList();
+
+      submissions.assignAll(data);
+
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
