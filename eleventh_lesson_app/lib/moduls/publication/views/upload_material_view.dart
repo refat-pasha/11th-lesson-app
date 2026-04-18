@@ -1,99 +1,162 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:get_storage/get_storage.dart';
-
-import '../controllers/publication_controller.dart';
-import '../../../app/theme/colors.dart';
-import '../../../core/services/download_service.dart';
-import '../../../core/services/file_service.dart';
-
-class UploadMaterialView extends GetView<PublicationController> {
-  const UploadMaterialView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+ 
+        DropdownButtonFormField<String>(
+          dropdownColor: AppColors.cardDark,
+          value: controller.selectedCourse.value,
+          decoration: inputDecoration("Course", ""),
+          items: controller.courseNames
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
+          onChanged: (value) => controller.selectedCourse.value = value!,
         ),
 
-        /// ROLE BASED TITLE
-        title: Obx(() {
-          final isTeacher = controller.userRole.value == "teacher";
-          return Text(isTeacher ? "Upload Content" : "Study Materials");
-        }),
-      ),
+        const SizedBox(height: 20),
 
-      body: Obx(() {
-        final isTeacher = controller.userRole.value == "teacher";
-        return isTeacher ? _buildUploadUI() : _buildStudentUI();
-      }),
+        ElevatedButton(
+          onPressed: controller.uploadMaterial,
+          child: const Text("Publish Material"),
+        ),
+      ],
     );
   }
 
-  /// ================= TEACHER UI =================
-  Widget _buildUploadUI() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const Text(
-          "Share notes, files & resources with your class",
-          style: TextStyle(color: Colors.white70),
-        ),
+  /// ================= STUDENT UI (UPDATED 🔥) =================
+  Widget _buildStudentUI() {
+    final downloadService = DownloadService();
+    final box = GetStorage();
 
-        const SizedBox(height: 20),
+    final RxDouble progress = 0.0.obs;
+    final RxBool isDownloading = false.obs;
+    final RxMap<String, String> localPaths = <String, String>{}.obs;
 
-        GestureDetector(
-          onTap: controller.pickFile,
-          child: Container(
-            padding: const EdgeInsets.all(30),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.blueAccent),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Column(
-              children: [
-                Icon(Icons.folder, size: 48, color: Colors.orange),
-                SizedBox(height: 12),
-                Text("Tap to upload files",
-                    style: TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-        ),
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('materials')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        const SizedBox(height: 20),
+        final materials = snapshot.data!.docs;
 
-        TextField(
-          controller: controller.titleController,
-          decoration: inputDecoration("Title", "Enter material title"),
-        ),
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: materials.length,
+          itemBuilder: (context, index) {
+            final data = materials[index];
+            final id = data.id;
 
-        const SizedBox(height: 16),
+            /// 🔥 LOAD SAVED PATH
+            final saved = box.read(id);
+            if (saved != null) {
+              localPaths[id] = saved;
+            }
 
-        TextField(
-          controller: controller.descriptionController,
-          maxLines: 3,
-          decoration: inputDecoration("Description", "Describe material"),
-        ),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cardDark,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-        const SizedBox(height: 16),
+                  /// TITLE
+                  Text(
+                    data['title'] ?? "No Title",
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
 
-        DropdownButtonFormField<String>(
-          dropdownColor: AppColors.cardDark,
-          value: controller.category.value,
-          decoration: inputDecoration("Category", ""),
-          items: controller.categories
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
-          onChanged: (value) => controller.category.value = value!,
-        ),
+                  const SizedBox(height: 6),
 
-        const SizedBox(height: 16),
+                  /// DESCRIPTION
+                  Text(
+                    data['description'] ?? "",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  /// BUTTONS
+                  Obx(() => Column(
+                        children: [
+
+                          /// DOWNLOAD
+                          if (!localPaths.containsKey(id))
+                            ElevatedButton(
+                              onPressed: () async {
+                                isDownloading.value = true;
+
+                                final path =
+                                    await downloadService.downloadFile(
+                                  url: data['fileUrl'],
+                                  fileName: "${data['title']}.pdf",
+                                  onProgress: (p) {
+                                    progress.value = p;
+                                  },
+                                );
+
+                                isDownloading.value = false;
+
+                                if (path != null) {
+                                  localPaths[id] = path;
+                                  box.write(id, path);
+
+                                  Get.snackbar("Success",
+                                      "Downloaded for offline use");
+                                }
+                              },
+                              child: const Text("Download"),
+                            ),
+
+                          /// PROGRESS
+                          if (isDownloading.value)
+                            Column(
+                              children: [
+                                LinearProgressIndicator(
+                                    value: progress.value),
+                                Text(
+                                  "${(progress.value * 100).toInt()}%",
+                                  style: const TextStyle(
+                                      color: Colors.white70),
+                                ),
+                              ],
+                            ),
+
+                          /// OPEN OFFLINE
+                          if (localPaths.containsKey(id))
+                            ElevatedButton(
+                              onPressed: () {
+                                FileService.openFile(localPaths[id]!);
+                              },
+                              child: const Text("Open Offline"),
+                            ),
+                        ],
+                      )),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// ================= INPUT STYLE =================
+  InputDecoration inputDecoration(String label, String hint) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      filled: true,
+      fillColor: AppColors.cardDark,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+}
