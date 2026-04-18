@@ -82,3 +82,22 @@ class SubmissionView extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _submitAssignment() async {
+    final result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      final file = result.files.first;
+      final ref = FirebaseStorage.instance.ref().child("submissions/${file.name}");
+      await ref.putData(file.bytes!);
+      final url = await ref.getDownloadURL();
+      await FirebaseFirestore.instance.collection('assignment_submissions').add({
+        "assignmentId": assignmentId,
+        "userId": "demo_user",
+        "fileUrl": url,
+        "submittedAt": FieldValue.serverTimestamp(),
+        "grade": null,
+      });
+      Get.snackbar("Success", "Assignment submitted");
+    }
+  }
+}
