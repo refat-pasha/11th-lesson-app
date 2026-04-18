@@ -81,3 +81,13 @@ class AssignmentController extends GetxController {
       assignments.assignAll(data);
     });
   }
+
+  /// ================= CREATE =================
+  Future<void> createAssignment(AssignmentModel assignment) async {
+    try {
+      await _assignmentRepository.createAssignment(assignment);
+      Get.snackbar("Success", "Assignment created");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
