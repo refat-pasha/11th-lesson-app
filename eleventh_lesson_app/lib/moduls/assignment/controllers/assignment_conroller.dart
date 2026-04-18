@@ -39,3 +39,15 @@ class AssignmentController extends GetxController {
     fetchAssignments();
     listenToAssignments();
   }
+
+  /// ================= FETCH ROLE =================
+  Future<void> fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc = await _firebaseProvider.users().doc(user.uid).get();
+    final data = doc.data() as Map<String, dynamic>?;
+    if (data != null && data["role"] != null) {
+      userRole.value = data["role"];
+    }
+  }
