@@ -1,66 +1,41 @@
-// placeholder
 // lib/modules/assignment/controllers/assignment_controller.dart
 
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../data/models/assignment_model.dart';
+import '../../../data/models/assignment_submission_model.dart';
 import '../../../data/providers/firebase_provider.dart';
 import '../../../data/repositories/assignment_repository.dart';
 
 class AssignmentController extends GetxController {
   late AssignmentRepository _assignmentRepository;
 
+  /// ================= STATE =================
   final RxList<AssignmentModel> assignments = <AssignmentModel>[].obs;
+
+  /// 🔥 NEW
+  final RxList<AssignmentSubmissionModel> submissions =
+      <AssignmentSubmissionModel>[].obs;
+
   final RxBool isLoading = false.obs;
 
+  /// ================= USER ROLE =================
+  final RxString userRole = "student".obs;
+  bool get isTeacher => userRole.value == "teacher" || userRole.value == "admin";
+
+  late final FirebaseProvider _firebaseProvider;
+
+  /// ================= INIT =================
   @override
   void onInit() {
-    _assignmentRepository =
-        AssignmentRepository(FirebaseProvider());
-    fetchAssignments();
     super.onInit();
+
+    _firebaseProvider = FirebaseProvider();
+    _assignmentRepository = AssignmentRepository(_firebaseProvider);
+
+    fetchUserRole();
+    fetchAssignments();
+    listenToAssignments();
   }
-
-Future<void> fetchAssignments() async {
-    try {
-      isLoading.value = true;
-
-      final data = await _assignmentRepository.getAssignments();
-
-      assignments.assignAll(data);
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-Future<void> createAssignment(AssignmentModel assignment) async {
-    try {
-      await _assignmentRepository.createAssignment(assignment);
-      fetchAssignments();
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-      );
-    }
-  }
-
-Future<void> deleteAssignment(String id) async {
-    try {
-      await _assignmentRepository.deleteAssignment(id);
-      fetchAssignments();
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-      );
-    }
-  }
-}
-
-  
