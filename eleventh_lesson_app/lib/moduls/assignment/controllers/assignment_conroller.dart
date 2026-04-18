@@ -172,3 +172,30 @@ class AssignmentController extends GetxController {
       Get.snackbar("Error", e.toString());
     }
   }
+
+  // ============================================================
+  // 🔥 🔥 🔥 TEACHER SIDE 🔥 🔥 🔥
+  // ============================================================
+
+  /// ================= GET SUBMISSIONS FOR ASSIGNMENT =================
+  Future<void> fetchSubmissionsByAssignment(String assignmentId) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('assignment_submissions')
+          .where("assignmentId", isEqualTo: assignmentId)
+          .orderBy("submittedAt", descending: true)
+          .get();
+
+      final data = snapshot.docs.map((doc) {
+        return AssignmentSubmissionModel.fromMap(
+          doc.data(),
+          doc.id,
+        );
+      }).toList();
+
+      submissions.assignAll(data);
+
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
