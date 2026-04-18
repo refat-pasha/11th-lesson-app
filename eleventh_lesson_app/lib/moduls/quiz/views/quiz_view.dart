@@ -417,24 +417,6 @@ class _QuickAccess extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _SectionHeader(title: 'Quick access'),
-        const SizedBox(height: 8),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.15,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          children: cards,
-        ),
-      ],
-    );
-  }
-}
 
 class _QuickCard extends StatelessWidget {
   const _QuickCard({
