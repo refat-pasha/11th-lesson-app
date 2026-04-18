@@ -21,6 +21,10 @@ class StorageKeys {
   // Offline Materials
   static const String offlineMaterials = "offline_materials";
 
+  // Pending sync queue (offline actions waiting for connection)
+  static const String pendingSyncQueue = "pending_sync_queue";
+  static const String lastSyncAt = "last_sync_at";
+
   // Progress
   static const String userProgress = "user_progress";
 
