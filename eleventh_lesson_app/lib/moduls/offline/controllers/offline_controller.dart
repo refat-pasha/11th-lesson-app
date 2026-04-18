@@ -1,22 +1,44 @@
+// lib/modules/offline/controllers/offline_controller.dart
+
 import 'package:get/get.dart';
 
 import '../../../data/models/material_model.dart';
 import '../../../data/providers/local_storage_provider.dart';
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/services/sync_service.dart';
 
 class OfflineController extends GetxController {
-    final LocalStorageProvider _storage = LocalStorageProvider();
+  final LocalStorageProvider _storage = LocalStorageProvider();
+  final SyncService syncService = Get.find<SyncService>();
 
   final RxList<MaterialModel> offlineMaterials = <MaterialModel>[].obs;
   final RxBool isLoading = false.obs;
 
-    @override
+  /// Triggers an immediate flush of the pending offline queue.
+  Future<void> syncNow() async {
+    await syncService.tryFlush();
+  }
+
+  /// Record a material view while offline; syncs when connection returns.
+  Future<void> queueMaterialView({
+    required String userId,
+    required String courseId,
+    required String materialId,
+  }) async {
+    await syncService.enqueue('material_view', {
+      'userId': userId,
+      'courseId': courseId,
+      'materialId': materialId,
+    });
+  }
+
+  @override
   void onInit() {
     loadOfflineMaterials();
     super.onInit();
   }
 
-    void loadOfflineMaterials() {
+  void loadOfflineMaterials() {
     try {
       isLoading.value = true;
 
@@ -38,6 +60,7 @@ class OfflineController extends GetxController {
       isLoading.value = false;
     }
   }
+
   Future<void> saveMaterialOffline(MaterialModel material) async {
     try {
       offlineMaterials.add(material);
@@ -54,7 +77,7 @@ class OfflineController extends GetxController {
     }
   }
 
-   Future<void> removeOfflineMaterial(String materialId) async {
+  Future<void> removeOfflineMaterial(String materialId) async {
     try {
       offlineMaterials.removeWhere((m) => m.id == materialId);
 
