@@ -10,7 +10,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 class PublicationController extends GetxController {
-
   /// Firebase Provider
   final FirebaseProvider firebaseProvider = Get.find();
 
@@ -37,24 +36,11 @@ class PublicationController extends GetxController {
   var selectedCourse = "CSE 221".obs;
   var visibility = "My Courses".obs;
 
-  final categories = [
-    "Lecture Notes",
-    "Slides",
-    "Assignment",
-    "Exam Prep",
-  ];
+  final categories = ["Lecture Notes", "Slides", "Assignment", "Exam Prep"];
 
-  final courseNames = [
-    "CSE 221",
-    "MATH 301",
-    "CSE 341",
-  ];
+  final courseNames = ["CSE 221", "MATH 301", "CSE 341"];
 
-  final visibilityOptions = [
-    "My Courses",
-    "Public",
-    "Private"
-  ];
+  final visibilityOptions = ["My Courses", "Public", "Private"];
 
   /// ================= INIT =================
   @override
@@ -94,9 +80,9 @@ class PublicationController extends GetxController {
       fileName.value = selectedFile!.name;
     }
   }
- /// ================= UPLOAD MATERIAL =================
-  Future<void> uploadMaterial() async {
 
+  /// ================= UPLOAD MATERIAL =================
+  Future<void> uploadMaterial() async {
     /// VALIDATION
     if (selectedFile == null) {
       Get.snackbar("Error", "Please select a file");
@@ -172,7 +158,6 @@ class PublicationController extends GetxController {
         "Material uploaded successfully",
         snackPosition: SnackPosition.BOTTOM,
       );
-
     } catch (e) {
       Get.snackbar(
         "Upload Error",
@@ -180,8 +165,34 @@ class PublicationController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
       print("Upload Error: $e");
-
     } finally {
       isUploading.value = false;
     }
   }
+
+  /// ================= TEMP FILE CREATION =================
+  Future<File> _createTempFile(Uint8List bytes, String name) async {
+    final tempDir = Directory.systemTemp;
+    final file = File('${tempDir.path}/$name');
+    return await file.writeAsBytes(bytes);
+  }
+
+  /// ================= CLEAR =================
+  void clearForm() {
+    titleController.clear();
+    descriptionController.clear();
+    tagsController.clear();
+
+    selectedFile = null;
+    fileName.value = "";
+  }
+
+  /// ================= DISPOSE =================
+  @override
+  void onClose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    tagsController.dispose();
+    super.onClose();
+  }
+}
