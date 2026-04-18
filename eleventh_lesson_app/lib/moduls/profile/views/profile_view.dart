@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/profile_controller.dart';
-import '../../../app/theme/colors.dart';
 import '../../../app/routes/app_routes.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -10,149 +9,99 @@ class ProfileView extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColor = theme.cardColor;
+    final textColor = theme.textTheme.bodyMedium?.color;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
 
           final user = controller.user.value;
 
           if (user == null) {
-            return const Center(
-              child: Text("No profile found",
-                  style: TextStyle(color: Colors.white70)),
-            );
+            return Center(child: Text("No profile found", style: TextStyle(color: textColor?.withValues(alpha: 0.7))));
           }
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
 
-              /// ================= HEADER =================
               Row(
                 children: [
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: Colors.blueAccent,
                     child: Text(
-                      user.name.isNotEmpty
-                          ? user.name[0].toUpperCase()
-                          : "U",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
+                      user.name.isNotEmpty ? user.name[0].toUpperCase() : "U",
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text(user.name, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 6),
-
-                      Row(
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
                         children: [
                           _tag(user.role.toUpperCase()),
-                          const SizedBox(width: 6),
-                          _tag(user.department ?? "CSE"),
-                          const SizedBox(width: 6),
-                          _tag("DIU"),
+                          if ((user.department ?? '').trim().isNotEmpty)
+                            _tag(user.department!.trim()),
+                          if ((user.university ?? '').trim().isNotEmpty)
+                            _tag(user.university!.trim()),
                         ],
-                      )
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              /// ================= STATS =================
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _statCard(
-                    user.enrolledCourses.length.toString(),
-                    "COURSES",
-                  ),
-                  _statCard(user.streak.toString(), "STREAK"),
-                  _statCard("${user.xp}", "XP"),
+                  _statCard(user.enrolledCourses.length.toString(), "COURSES", cardColor, textColor),
+                  _statCard(user.streak.toString(), "STREAK", cardColor, textColor),
+                  _statCard("${user.xp}", "XP", cardColor, textColor),
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              /// ================= ACADEMIC DETAILS =================
-              _sectionTitle("Academic Details"),
+              _sectionTitle("Academic Details", textColor),
 
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.cardDark,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
                 child: Column(
                   children: [
-                    _row("University", user.university ?? "-"),
-                    _row("Department", user.department ?? "-"),
-                    _row("Semester", user.semester ?? "-"),
-                    _row(
-                      "Subjects",
-                      user.subjects.isEmpty
-                          ? "-"
-                          : user.subjects.join(" • "),
-                    ),
+                    _row("University", user.university ?? "-", textColor),
+                    _row("Department", user.department ?? "-", textColor),
+                    _row("Semester", user.semester ?? "-", textColor),
+                    _row("Subjects", user.subjects.isEmpty ? "-" : user.subjects.join(" • "), textColor),
                   ],
                 ),
               ),
 
               const SizedBox(height: 24),
 
-              /// ================= SETTINGS =================
-              _sectionTitle("Settings"),
+              _sectionTitle("Settings", textColor),
 
-              _menuTile(
-                icon: Icons.settings,
-                title: "Account Settings",
-                subtitle: "Security, preferences",
-                onTap: () => Get.toNamed(Routes.accountSettings),
-              ),
-
-              _menuTile(
-                icon: Icons.school,
-                title: "Academic Profile",
-                subtitle: "University, department, subjects",
-                onTap: () => Get.toNamed(Routes.academicProfile),
-              ),
-
-              _menuTile(
-                icon: Icons.dark_mode,
-                title: "Appearance",
-                subtitle: "Theme & display",
-                onTap: () => Get.toNamed(Routes.appearance),
-              ),
+              _menuTile(icon: Icons.settings, title: "Account Settings", subtitle: "Security, preferences", onTap: () => Get.toNamed(Routes.accountSettings), cardColor: cardColor, textColor: textColor),
+              _menuTile(icon: Icons.school, title: "Academic Profile", subtitle: "University, department, subjects", onTap: () => Get.toNamed(Routes.academicProfile), cardColor: cardColor, textColor: textColor),
+              _menuTile(icon: Icons.dark_mode, title: "Appearance", subtitle: "Theme & display", onTap: () => Get.toNamed(Routes.appearance), cardColor: cardColor, textColor: textColor),
 
               const SizedBox(height: 30),
 
-              /// ================= LOGOUT =================
               ElevatedButton(
                 onPressed: controller.logout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  minimumSize: const Size(double.infinity, 50),
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, minimumSize: const Size(double.infinity, 50)),
                 child: const Text("Sign Out"),
               ),
 
@@ -164,101 +113,59 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  /// ================= UI HELPERS =================
-
   Widget _tag(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.blueAccent.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.blueAccent,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
+      child: Text(text, style: const TextStyle(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 
-  Widget _statCard(String value, String label) {
+  Widget _statCard(String value, String label, Color cardColor, Color? textColor) {
     return Container(
       width: 100,
       padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.cardDark,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(value, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
+          Text(label, style: TextStyle(color: textColor?.withValues(alpha: 0.7), fontSize: 12)),
         ],
       ),
     );
   }
 
-  Widget _row(String title, String value) {
+  Widget _row(String title, String value, Color? textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white70)),
-          Text(value, style: const TextStyle(color: Colors.white)),
+          Text(title, style: TextStyle(color: textColor?.withValues(alpha: 0.7))),
+          Text(value, style: TextStyle(color: textColor)),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(String text) {
+  Widget _sectionTitle(String text, Color? textColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      child: Text(text, style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold)),
     );
   }
 
-  Widget _menuTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
+  Widget _menuTile({required IconData icon, required String title, required String subtitle, required VoidCallback onTap, required Color cardColor, required Color? textColor}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.cardDark,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         onTap: onTap,
-        leading: Icon(icon, color: Colors.white),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        subtitle:
-            Text(subtitle, style: const TextStyle(color: Colors.white70)),
-        trailing: const Icon(Icons.arrow_forward_ios,
-            size: 16, color: Colors.white54),
+        leading: Icon(icon, color: textColor),
+        title: Text(title, style: TextStyle(color: textColor)),
+        subtitle: Text(subtitle, style: TextStyle(color: textColor?.withValues(alpha: 0.7))),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textColor?.withValues(alpha: 0.54)),
       ),
     );
   }

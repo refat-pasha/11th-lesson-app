@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/appearance_controller.dart';
-import '../../../app/theme/colors.dart';
 
 class AppearanceView extends GetView<AppearanceController> {
 
@@ -11,9 +10,11 @@ class AppearanceView extends GetView<AppearanceController> {
   @override
   Widget build(BuildContext context) {
 
+    final theme = Theme.of(context);
+
     return Scaffold(
 
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
         title: const Text("Appearance"),
@@ -32,7 +33,7 @@ class AppearanceView extends GetView<AppearanceController> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.cardDark,
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(14),
               ),
 
@@ -42,10 +43,10 @@ class AppearanceView extends GetView<AppearanceController> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
 
-                    const Text(
+                    Text(
                       "Dark Mode",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: theme.textTheme.bodyMedium?.color,
                         fontSize: 16,
                       ),
                     ),
@@ -66,28 +67,28 @@ class AppearanceView extends GetView<AppearanceController> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.cardDark,
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(14),
               ),
 
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
                   Text(
                     "Theme Options",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: theme.textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
                   Text(
                     "You can switch between light and dark theme for better readability.",
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                     ),
                   ),
 
