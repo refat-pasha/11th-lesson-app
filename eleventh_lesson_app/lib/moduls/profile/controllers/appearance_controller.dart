@@ -15,13 +15,9 @@ class AppearanceController extends GetxController {
 
   void loadTheme() {
     final saved = storage.read('isDarkMode');
-
-    if (saved != null) {
-      isDarkMode.value = saved;
-      Get.changeThemeMode(
-        saved ? ThemeMode.dark : ThemeMode.light,
-      );
-    }
+    final isDark = saved ?? true;
+    isDarkMode.value = isDark;
+    Get.changeThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 
   void toggleTheme(bool value) {
