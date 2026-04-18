@@ -19,7 +19,7 @@ class ElevenLessonApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
 
       initialBinding: InitialBinding(),
-      initialRoute: AppPages.INITIAL,
+      initialRoute: AppPages.initial,
       getPages: AppPages.routes,
 
       theme: AppTheme.lightTheme,
