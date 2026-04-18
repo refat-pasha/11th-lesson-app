@@ -51,3 +51,18 @@ class AssignmentController extends GetxController {
       userRole.value = data["role"];
     }
   }
+
+  /// ================= FETCH ASSIGNMENTS =================
+  Future<void> fetchAssignments() async {
+    try {
+      isLoading.value = true;
+
+      final data = await _assignmentRepository.getAssignments();
+      assignments.assignAll(data);
+
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
