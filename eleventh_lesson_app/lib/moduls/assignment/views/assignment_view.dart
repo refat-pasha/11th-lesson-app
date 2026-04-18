@@ -1,38 +1,40 @@
-// placeholder
-// lib/modules/assignment/views/assignment_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../controllers/assignment_controller.dart';
-import '../../../app/theme/colors.dart';
+import '../../../data/models/assignment_model.dart';
+import 'my_submissions_view.dart';
+import 'grade_submissions_view.dart';
 
 class AssignmentView extends GetView<AssignmentController> {
   const AssignmentView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColor = theme.cardColor;
+    final textColor = theme.textTheme.bodyMedium?.color;
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: theme.scaffoldBackgroundColor,
+
       appBar: AppBar(
         title: const Text("Assignments"),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(icon: const Icon(Icons.history), onPressed: () => Get.to(() => const MySubmissionsView())),
+          Obx(() => controller.isTeacher
+              ? IconButton(icon: const Icon(Icons.add), onPressed: _showCreateAssignmentDialog)
+              : const SizedBox.shrink()),
+        ],
       ),
+
       body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+        if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
 
         if (controller.assignments.isEmpty) {
-          return const Center(
-            child: Text(
-              "No assignments available",
-              style: TextStyle(color: Colors.white70),
-            ),
-          );
+          return Center(child: Text("No assignments available", style: TextStyle(color: textColor?.withValues(alpha: 0.7))));
         }
 
         return ListView.builder(
@@ -44,55 +46,49 @@ class AssignmentView extends GetView<AssignmentController> {
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.cardDark,
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     assignment.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                   ),
-
                   const SizedBox(height: 8),
-
-                  Text(
-                    assignment.description,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                    ),
-                  ),
-
+                  Text(assignment.description, style: TextStyle(color: textColor?.withValues(alpha: 0.7))),
                   const SizedBox(height: 10),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Due: ${assignment.dueDate.toLocal().toString().split(' ')[0]}",
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontSize: 12,
-                        ),
-                      ),
-
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          controller.deleteAssignment(assignment.id);
-                        },
-                      ),
-                    ],
+                  Text(
+                    "Due: ${assignment.dueDate.toLocal().toString().split(' ')[0]}",
+                    style: const TextStyle(color: Colors.orange),
                   ),
+                  const SizedBox(height: 10),
+                  Obx(() {
+                    final isTeacher = controller.isTeacher;
+                    return Row(
+                      children: [
+                        if (assignment.fileUrl != null && assignment.fileUrl!.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.open_in_new, color: Colors.blue),
+                            onPressed: () async => await launchUrl(Uri.parse(assignment.fileUrl!)),
+                          ),
+                        if (!isTeacher)
+                          IconButton(
+                            icon: const Icon(Icons.upload, color: Colors.green),
+                            onPressed: () => _submitAssignment(assignment.id, assignment.courseId ?? "mad101"),
+                          ),
+                        if (isTeacher) ...[
+                          IconButton(
+                            icon: const Icon(Icons.rate_review, color: Colors.amber),
+                            onPressed: () => Get.to(() => GradeSubmissionsView(assignmentId: assignment.id)),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => controller.deleteAssignment(assignment.id),
+                          ),
+                        ],
+                      ],
+                    );
+                  }),
                 ],
               ),
             );
@@ -101,4 +97,3 @@ class AssignmentView extends GetView<AssignmentController> {
       }),
     );
   }
-}
