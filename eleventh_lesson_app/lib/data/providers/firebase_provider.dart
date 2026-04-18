@@ -55,6 +55,23 @@ class FirebaseProvider {
     return firestore.collection('groups');
   }
 
+  CollectionReference groupThreads(String groupId) {
+    return firestore.collection('groups').doc(groupId).collection('threads');
+  }
+
+  CollectionReference threadReplies(String groupId, String threadId) {
+    return firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('threads')
+        .doc(threadId)
+        .collection('replies');
+  }
+
+  CollectionReference groupMessages(String groupId) {
+    return firestore.collection('groups').doc(groupId).collection('messages');
+  }
+
  
 
   CollectionReference materialViews() {
