@@ -199,3 +199,28 @@ class AssignmentController extends GetxController {
       Get.snackbar("Error", e.toString());
     }
   }
+
+  /// ================= GRADE SUBMISSION =================
+  Future<void> gradeSubmission({
+    required String submissionId,
+    required int marks,
+    required String feedback,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('assignment_submissions')
+          .doc(submissionId)
+          .update({
+        "marks": marks,
+        "feedback": feedback,
+        "status": "graded",
+        "gradedAt": FieldValue.serverTimestamp(),
+      });
+
+      Get.snackbar("Success", "Assignment graded");
+
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+}
