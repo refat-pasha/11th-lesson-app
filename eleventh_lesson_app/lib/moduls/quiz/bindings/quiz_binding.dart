@@ -1,0 +1,138 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../../providers/quiz_provider.dart';
+import '../../../data/models/quiz_model.dart';
+import '../../core/theme/app_theme.dart';
+import '../widgets/common/app_widgets.dart';
+
+
+class QuizScreen extends StatefulWidget {
+  const QuizScreen({super.key});
+
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen>
+    with WidgetsBindingObserver {
+  Timer? _timer;
+  bool _timerStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Delay provider access until the first frame is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final prov = context.read<QuizProvider>();
+
+      // Start a quiz only if there is no active quiz
+      if (prov.activeQuiz == null) {
+        prov.startQuiz('q1');
+      }
+
+      // Start timer after quiz is initialized
+      _startTimer();
+    });
+  }
+
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopTimer();
+    super.dispose();
+  }
+
+  /// Handles app lifecycle changes.
+  /// Stops timer when app is inactive or in background.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _stopTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      _startTimer();
+    }
+  }
+
+  /// Starts the countdown timer.
+  void _startTimer() {
+    if (_timerStarted) return;
+
+    _timer?.cancel();
+    _timerStarted = true;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+
+      final prov = context.read<QuizProvider>();
+
+      // Call provider method every second
+      prov.tickTimer();
+
+      // Optional: stop timer automatically if time is over
+      if (prov.remainingSeconds <= 0) {
+        _stopTimer();
+
+        // If you have a submit function, you can call it here
+        // prov.submitQuiz();
+      }
+    });
+  }
+
+/// Stops the timer safely.
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+    _timerStarted = false;
+  }
+
+  /// Formats seconds into mm:ss
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = (seconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$remainingSeconds';
+  }
+
+  /// Handles back navigation with confirmation dialog
+  Future<void> _handleExitQuiz(BuildContext context, QuizProvider prov) async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.s1,
+          title: const Text(
+            'Exit Quiz?',
+            style: TextStyle(color: AppTheme.t1),
+          ),
+          content: const Text(
+            'Your current quiz progress may be lost. Do you want to exit?',
+            style: TextStyle(color: AppTheme.t2),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Exit'),
+            ),
+          ],
+        );
+      },
+    );
+
+if (shouldExit == true && mounted) {
+      _stopTimer();
+      prov.reset();
+      context.pop();
+    }
+  }
+
