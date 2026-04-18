@@ -101,3 +101,48 @@ class AssignmentController extends GetxController {
       Get.snackbar("Error", e.toString());
     }
   }
+
+  // ============================================================
+  // 🔥 🔥 🔥 STUDENT SIDE 🔥 🔥 🔥
+  // ============================================================
+
+  /// ================= SUBMIT ASSIGNMENT =================
+  Future<void> submitAssignment({
+    required String assignmentId,
+    required String courseId,
+    required String answer,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        Get.snackbar("Error", "User not logged in");
+        return;
+      }
+
+      if (answer.trim().isEmpty) {
+        Get.snackbar("Error", "Answer cannot be empty");
+        return;
+      }
+
+      await FirebaseFirestore.instance
+          .collection('assignment_submissions')
+          .add({
+        "assignmentId": assignmentId,
+        "userId": user.uid,
+        "courseId": courseId,
+        "answer": answer.trim(),
+        "fileUrl": "",
+        "marks": null,
+        "feedback": "",
+        "status": "submitted",
+        "submittedAt": FieldValue.serverTimestamp(),
+        "gradedAt": null,
+      });
+
+      Get.snackbar("Success", "Assignment submitted");
+
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
