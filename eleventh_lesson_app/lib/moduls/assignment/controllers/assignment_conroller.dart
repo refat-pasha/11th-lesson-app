@@ -91,3 +91,13 @@ class AssignmentController extends GetxController {
       Get.snackbar("Error", e.toString());
     }
   }
+
+  /// ================= DELETE =================
+  Future<void> deleteAssignment(String id) async {
+    try {
+      await _assignmentRepository.deleteAssignment(id);
+      Get.snackbar("Deleted", "Assignment removed");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
