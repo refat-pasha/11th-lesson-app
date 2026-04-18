@@ -97,3 +97,72 @@ class AssignmentView extends GetView<AssignmentController> {
       }),
     );
   }
+
+   void _showCreateAssignmentDialog() {
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    final fileUrlController = TextEditingController();
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 7));
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text("Create Assignment"),
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(controller: titleController, decoration: const InputDecoration(labelText: "Title")),
+                  TextField(controller: descController, decoration: const InputDecoration(labelText: "Description")),
+                  TextField(controller: fileUrlController, decoration: const InputDecoration(labelText: "Google Drive File Link")),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Due: ${selectedDate.toLocal().toString().split(' ')[0]}"),
+                      TextButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) setState(() => selectedDate = picked);
+                        },
+                        child: const Text("Pick Date"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              if (titleController.text.isEmpty) {
+                Get.snackbar("Error", "Title is required");
+                return;
+              }
+              await controller.createAssignment(
+                AssignmentModel(
+                  id: "",
+                  title: titleController.text.trim(),
+                  description: descController.text.trim(),
+                  fileUrl: fileUrlController.text.trim(),
+                  dueDate: selectedDate,
+                  courseId: "mad101",
+                  createdAt: DateTime.now(),
+                ),
+              );
+              Get.back();
+            },
+            child: const Text("Create"),
+          ),
+        ],
+      ),
+    );
+  }
