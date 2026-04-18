@@ -66,3 +66,18 @@ class AssignmentController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  /// ================= REAL-TIME ASSIGNMENTS =================
+  void listenToAssignments() {
+    FirebaseFirestore.instance
+        .collection('assignments')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      final data = snapshot.docs.map((doc) {
+        return AssignmentModel.fromMap(doc.data(), doc.id);
+      }).toList();
+
+      assignments.assignAll(data);
+    });
+  }
