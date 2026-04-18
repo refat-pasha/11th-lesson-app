@@ -1,127 +1,179 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../data/repositories/auth_repository.dart';
+import '../../../data/models/user_model.dart';
 import '../../../app/routes/app_routes.dart';
-import '../../../core/controllers/lms_controller.dart';
 
 class AuthController extends GetxController {
-  final LmsController _lms = Get.find<LmsController>();
+  late final AuthRepository _authRepository;
 
-  final isLoading = false.obs;
-  final selectedRole = 'student'.obs;
-  final setupStep = 0.obs;
+  final RxBool isLoading = false.obs;
+  final Rxn<UserModel> user = Rxn<UserModel>();
+  final RxString selectedRole = ''.obs;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
-  final universityController = TextEditingController(text: 'DIU');
-  final departmentController = TextEditingController(text: 'CSE');
-  final semesterController = TextEditingController(text: '11th');
-  final programController = TextEditingController(text: 'B.Sc in CSE');
-  final sectionController = TextEditingController(text: '63_J');
-  final subjectsController = TextEditingController(text: 'CSE 221, CSE 341, MATH 301');
-
-  final language = 'English'.obs;
-  final dailyGoalMinutes = 90.obs;
-  final deadlineReminders = true.obs;
-  final autoDownload = false.obs;
-  final streakAlerts = true.obs;
-  final darkMode = true.obs;
 
   final loginFormKey = GlobalKey<FormState>();
   final registerFormKey = GlobalKey<FormState>();
 
-  List<String> get subjectList => subjectsController.text
-      .split(',')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
-
-  void nextStep() {
-    if (setupStep.value < 2) {
-      setupStep.value++;
-    } else {
-      completeProfile();
-    }
+  @override
+  void onInit() {
+    _authRepository = Get.find<AuthRepository>();
+    super.onInit();
   }
 
-  void previousStep() {
-    if (setupStep.value > 0) {
-      setupStep.value--;
-    }
-  }
-
+  // ================= LOGIN =================
   Future<void> login() async {
     if (!loginFormKey.currentState!.validate()) return;
+
     try {
       isLoading.value = true;
-      await _lms.login(emailController.text.trim(), passwordController.text.trim());
-      Get.offAllNamed(Routes.DASHBOARD);
-    } catch (e) {
-      Get.snackbar('Login Failed', e.toString());
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
-  Future<void> loginWithDemo({
-    required String email,
-    required String password,
-  }) async {
-    emailController.text = email;
-    passwordController.text = password;
-    await login();
-  }
-
-  Future<void> register() async {
-    if (!registerFormKey.currentState!.validate()) return;
-    try {
-      isLoading.value = true;
-      await _lms.register(
-        name: nameController.text.trim(),
+      final result = await _authRepository.login(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      setupStep.value = 0;
-      Get.offAllNamed(Routes.SETUP_PROFILE);
+
+      if (result != null) {
+        final profile =
+            await _authRepository.getUserProfile(result.user!.uid);
+
+        if (profile == null || profile.role.isEmpty) {
+          Get.offAllNamed(Routes.setupProfile);
+        } else {
+          user.value = profile;
+          Get.offAllNamed(Routes.dashboard);
+        }
+      }
     } catch (e) {
-      Get.snackbar('Registration Failed', e.toString());
+      Get.snackbar("Login Failed", e.toString(),
+          snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> completeProfile() async {
+  // ================= REGISTER =================
+  Future<void> register() async {
+    if (!registerFormKey.currentState!.validate()) return;
+
     try {
       isLoading.value = true;
-      await _lms.completeProfile(
-        role: selectedRole.value,
-        university: universityController.text.trim(),
-        department: departmentController.text.trim(),
-        semester: '${semesterController.text.trim()} · ${sectionController.text.trim()}',
-        subjects: subjectList,
-        program: programController.text.trim(),
-        batch: sectionController.text.trim(),
+
+      final result = await _authRepository.register(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        name: nameController.text.trim(),
       );
-      await _lms.updatePreference(
-        deadlineReminders: deadlineReminders.value,
-        autoDownload: autoDownload.value,
-        streakAlerts: streakAlerts.value,
-        darkMode: darkMode.value,
-        language: language.value,
-        dailyGoalMinutes: dailyGoalMinutes.value,
-      );
-      Get.offAllNamed(Routes.DASHBOARD);
+
+      if (result != null) {
+        Get.offAllNamed(Routes.setupProfile);
+      }
     } catch (e) {
-      Get.snackbar('Profile Setup Failed', e.toString());
+      Get.snackbar("Registration Failed", e.toString(),
+          snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
   }
 
+  // ================= ROLE SELECT =================
+  void selectRole(String role) {
+    selectedRole.value = role;
+  }
+
+  // ================= SAVE PROFILE =================
+  Future<void> saveProfile() async {
+    if (selectedRole.value.isEmpty) {
+      Get.snackbar(
+        "Role Required",
+        "Please select Student or Teacher",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      final firebaseUser = _authRepository.currentUser;
+
+      if (firebaseUser == null) {
+        Get.offAllNamed(Routes.login);
+        return;
+      }
+
+      final existing =
+          await _authRepository.getUserProfile(firebaseUser.uid);
+
+      final userModel = UserModel(
+        id: firebaseUser.uid,
+
+        name: nameController.text.trim().isEmpty
+            ? (firebaseUser.displayName ??
+                existing?.name ??
+                "User")
+            : nameController.text.trim(),
+
+        email: firebaseUser.email ?? "",
+        role: selectedRole.value,
+
+        university: existing?.university,
+        department: existing?.department,
+        semester: existing?.semester,
+
+        subjects: existing?.subjects ?? [],
+        enrolledCourses: existing?.enrolledCourses ?? [],
+
+        xp: existing?.xp ?? 0,
+        level: existing?.level ?? 1, // ✅ FIXED
+        streak: existing?.streak ?? 0,
+        achievements: existing?.achievements ?? [],
+
+        /// 🔥 FIX: REMOVE totalCourse dependency
+        /// Instead calculate dynamically later
+
+        createdAt: existing?.createdAt ?? DateTime.now(),
+      );
+
+      await _authRepository.saveUserProfile(userModel);
+      user.value = userModel;
+
+      Get.offAllNamed(Routes.dashboard);
+    } catch (e) {
+      Get.snackbar("Profile Save Failed", e.toString(),
+          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ================= LOAD USER PROFILE =================
+  Future<void> loadUserProfile() async {
+    final firebaseUser = _authRepository.currentUser;
+
+    if (firebaseUser != null) {
+      final profile =
+          await _authRepository.getUserProfile(firebaseUser.uid);
+      user.value = profile;
+    }
+  }
+
+  // ================= LOGOUT =================
   Future<void> logout() async {
-    await _lms.logout();
-    Get.offAllNamed(Routes.LOGIN);
+    await _authRepository.logout();
+
+    user.value = null;
+    selectedRole.value = '';
+
+    emailController.clear();
+    passwordController.clear();
+    nameController.clear();
+
+    Get.offAllNamed(Routes.login);
   }
 
   @override
@@ -129,12 +181,6 @@ class AuthController extends GetxController {
     emailController.dispose();
     passwordController.dispose();
     nameController.dispose();
-    universityController.dispose();
-    departmentController.dispose();
-    semesterController.dispose();
-    programController.dispose();
-    sectionController.dispose();
-    subjectsController.dispose();
     super.onClose();
   }
 }
