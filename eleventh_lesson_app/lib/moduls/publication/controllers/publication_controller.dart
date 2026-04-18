@@ -94,3 +94,94 @@ class PublicationController extends GetxController {
       fileName.value = selectedFile!.name;
     }
   }
+ /// ================= UPLOAD MATERIAL =================
+  Future<void> uploadMaterial() async {
+
+    /// VALIDATION
+    if (selectedFile == null) {
+      Get.snackbar("Error", "Please select a file");
+      return;
+    }
+
+    if (titleController.text.isEmpty) {
+      Get.snackbar("Error", "Title is required");
+      return;
+    }
+
+    /// ROLE CHECK
+    if (userRole.value != "teacher") {
+      Get.snackbar("Access Denied", "Only teachers can upload materials");
+      return;
+    }
+
+    try {
+      isUploading.value = true;
+
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        Get.snackbar("Error", "User not logged in");
+        return;
+      }
+
+      final userId = user.uid;
+
+      /// ================= GOOGLE DRIVE UPLOAD =================
+      final fileBytes = selectedFile!.bytes;
+
+      if (fileBytes == null) {
+        Get.snackbar("Error", "File data is missing");
+        return;
+      }
+
+      /// Convert bytes → temp file
+      final tempFile = await _createTempFile(fileBytes, selectedFile!.name);
+
+      final fileId = await _driveService.uploadFile(tempFile);
+
+      if (fileId == null) {
+        Get.snackbar("Upload Failed", "Google Drive upload failed");
+        return;
+      }
+
+      final downloadUrl = _driveService.getDownloadUrl(fileId);
+
+      /// ================= FIRESTORE =================
+      await firebaseProvider.materials().add({
+        "title": titleController.text.trim(),
+        "description": descriptionController.text.trim(),
+        "category": category.value,
+        "courseId": selectedCourse.value,
+        "visibility": visibility.value,
+        "tags": tagsController.text
+            .split(",")
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList(),
+        "fileName": selectedFile!.name,
+        "fileUrl": downloadUrl,
+        "fileId": fileId, // 🔥 NEW (important)
+        "uploadedBy": userId,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+
+      clearForm();
+
+      Get.snackbar(
+        "Success",
+        "Material uploaded successfully",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+    } catch (e) {
+      Get.snackbar(
+        "Upload Error",
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      print("Upload Error: $e");
+
+    } finally {
+      isUploading.value = false;
+    }
+  }
