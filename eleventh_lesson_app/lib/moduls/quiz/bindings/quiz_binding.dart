@@ -308,3 +308,13 @@ if (shouldExit == true && mounted) {
     );
   }
 }
+
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../../providers/quiz_provider.dart';
+import '../../../data/models/quiz_model.dart';
+import '../../core/theme/app_theme.dart';
+import '../widgets/common/app_widgets.dart';
