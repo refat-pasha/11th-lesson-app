@@ -101,3 +101,18 @@ class SubmissionView extends StatelessWidget {
     }
   }
 }
+
+class _FileViewer extends StatelessWidget {
+  final String url;
+  const _FileViewer({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("View File")),
+      body: Center(
+        child: Text("Open this URL:\n$url", style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+      ),
+    );
+  }
+}
