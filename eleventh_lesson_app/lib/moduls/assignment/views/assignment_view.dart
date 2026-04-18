@@ -166,3 +166,33 @@ class AssignmentView extends GetView<AssignmentController> {
       ),
     );
   }
+
+  void _submitAssignment(String assignmentId, String courseId) {
+    final answerController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text("Submit Assignment"),
+        content: TextField(
+          controller: answerController,
+          maxLines: 4,
+          decoration: const InputDecoration(labelText: "Write your answer"),
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              await controller.submitAssignment(
+                assignmentId: assignmentId,
+                courseId: courseId,
+                answer: answerController.text,
+              );
+              Get.back();
+            },
+            child: const Text("Submit"),
+          ),
+        ],
+      ),
+    );
+  }
+}
