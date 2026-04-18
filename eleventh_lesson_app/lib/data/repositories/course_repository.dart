@@ -17,6 +17,7 @@ class CourseRepository {
   Future<void> createCourse(CourseModel course) async {
     await _courseRef.add(course.toMap());
   }
+
   // Get All Courses
   Future<List<CourseModel>> getCourses() async {
     final snapshot = await _courseRef.get();
