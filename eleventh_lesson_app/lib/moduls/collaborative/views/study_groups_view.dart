@@ -126,26 +126,7 @@ class StudyGroupsView extends GetView<CollaborativeController> {
           ],
         ),
 
-          void _confirmRemove(BuildContext context, String memberId, String name) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text("Remove member?"),
-        content: Text("Remove $name from this group?"),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text("Cancel")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              await controller.removeMember(groupId, memberId);
-              Get.back();
-            },
-            child: const Text("Remove"),
-          ),
-        ],
-      ),
-    );
-  }
-}
+        
         actions: [
           TextButton(onPressed: Get.back, child: const Text("Cancel")),
           ElevatedButton(
