@@ -1,321 +1,149 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../app/theme/colors.dart';
-import '../../../data/models/group_model.dart';
 import '../controllers/collaborative_controller.dart';
+import '../../../app/theme/colors.dart';
+import 'group_detail_view.dart';
 
 class StudyGroupsView extends GetView<CollaborativeController> {
-  const StudyGroupsView({super.key, this.showScaffold = true});
-
-  final bool showScaffold;
+  const StudyGroupsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final body = Obx(() {
-      final groups = controller.lms.groups;
-      return ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Study groups',
-                style: Theme.of(context)
-                    .textTheme
-                    .displayMedium
-                    ?.copyWith(color: Colors.white, fontSize: 26),
-              ),
-              TextButton.icon(
-                onPressed: _showCreateDialog,
-                icon: const Icon(Icons.add),
-                label: const Text('New group'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Collaborate, share resources, and discuss doubts with peers.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
-          ),
-          const SizedBox(height: 14),
-          ...groups.map((group) => _GroupCard(group: group)),
-        ],
-      );
-    });
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final theme = Theme.of(context);
+    final cardColor = theme.cardColor;
+    final textColor = theme.textTheme.bodyMedium?.color;
 
-    if (!showScaffold) return body;
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      appBar: AppBar(title: const Text('Study Groups')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateDialog,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text("Study Groups"), backgroundColor: Colors.transparent, elevation: 0),
+      floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add),
-        label: const Text('Create'),
+        onPressed: () => _showCreateGroupDialog(userId),
+        child: const Icon(Icons.add),
       ),
-      body: body,
-    );
-  }
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('groups').orderBy('createdAt', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-  void _showCreateDialog() {
-    final nameController = TextEditingController();
-    final subjectController = TextEditingController();
-    final descriptionController = TextEditingController();
-    Get.defaultDialog(
-      title: 'Create study group',
-      backgroundColor: AppColors.cardDark,
-      titleStyle: const TextStyle(color: Colors.white),
-      content: Column(
-        children: [
-          TextField(
-            controller: nameController,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(labelText: 'Group name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: subjectController,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(labelText: 'Subject'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: descriptionController,
-            maxLines: 3,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(labelText: 'Description'),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () async {
-              await controller.createGroup(
-                name: nameController.text.trim(),
-                subject: subjectController.text.trim(),
-                description: descriptionController.text.trim(),
-              );
-              Get.back();
-            },
-            child: const Text('Create group'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+          final groups = snapshot.data!.docs;
 
-class _GroupCard extends StatelessWidget {
-  const _GroupCard({required this.group});
+          if (groups.isEmpty) {
+            return Center(child: Text("No study groups available", style: TextStyle(color: textColor?.withValues(alpha: 0.7))));
+          }
 
-  final GroupModel group;
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: groups.length,
+            itemBuilder: (context, index) {
+              final group = groups[index];
+              final data = group.data();
+              final members = List<String>.from(data['members'] ?? []);
+              final isJoined = members.contains(userId);
 
-  @override
-  Widget build(BuildContext context) {
-    final lms = Get.find<CollaborativeController>().lms;
-    final joined = group.members.contains(lms.currentUser.value?.id);
-    return InkWell(
-      onTap: () => _openGroup(group),
-      borderRadius: BorderRadius.circular(18),
-      child: Ink(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.cardDark,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  height: 44,
-                  width: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text('🤝', style: TextStyle(fontSize: 20)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
+              return GestureDetector(
+                onTap: isJoined
+                    ? () => Get.to(() => const GroupDetailView(), arguments: {
+                          'groupId': group.id,
+                          'groupName': data['name'] ?? 'Group',
+                        })
+                    : null,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        group.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                        data['name'] ?? "Group",
+                        style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        group.subject,
-                        style: const TextStyle(color: Colors.white60, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () => joined
-                      ? lms.leaveGroup(group.id)
-                      : lms.joinGroup(group.id),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: joined ? Colors.white12 : AppColors.primary,
-                  ),
-                  child: Text(joined ? 'Leave' : 'Join'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(group.description,
-                style: const TextStyle(color: Colors.white70, height: 1.4)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _Pill(text: '${group.members.length} members'),
-                const SizedBox(width: 8),
-                _Pill(text: '${group.resourceLinks.length} resources'),
-                const SizedBox(width: 8),
-                _Pill(text: '${group.messages.length} messages'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _openGroup(GroupModel group) {
-    final messageController = TextEditingController();
-    final resourceController = TextEditingController();
-    Get.bottomSheet(
-      StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: AppColors.cardDark,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                child: Obx(() {
-                  final freshGroup = Get.find<CollaborativeController>()
-                      .lms
-                      .groups
-                      .firstWhere((item) => item.id == group.id, orElse: () => group);
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                      const SizedBox(height: 6),
+                      Text(data['subject'] ?? "", style: const TextStyle(color: Colors.blueAccent, fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Text(data['description'] ?? "", style: TextStyle(color: textColor?.withValues(alpha: 0.7))),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            freshGroup.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                            ),
+                            "${members.length} members",
+                            style: TextStyle(color: textColor?.withValues(alpha: 0.6), fontSize: 12),
                           ),
-                          _Pill(text: '${freshGroup.members.length} members'),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isJoined)
+                                IconButton(
+                                  tooltip: "Open",
+                                  icon: const Icon(Icons.forum, color: Colors.blueAccent),
+                                  onPressed: () => Get.to(() => const GroupDetailView(), arguments: {
+                                    'groupId': group.id,
+                                    'groupName': data['name'] ?? 'Group',
+                                  }),
+                                ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isJoined ? Colors.grey : Colors.blueAccent,
+                                ),
+                                onPressed: isJoined ? null : () => controller.joinGroup(group.id, userId!),
+                                child: Text(isJoined ? "Joined" : "Join"),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      const Text('Resources',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 8),
-                      ...freshGroup.resourceLinks.map(
-                        (resource) => Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Text('• $resource',
-                              style: const TextStyle(color: Colors.white70)),
-                        ),
-                      ),
-                      TextField(
-                        controller: resourceController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Add resource'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () async {
-                          await Get.find<CollaborativeController>().addGroupResource(
-                            freshGroup.id,
-                            resourceController.text.trim(),
-                          );
-                          resourceController.clear();
-                          setModalState(() {});
-                        },
-                        child: const Text('Share resource'),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text('Discussion',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 8),
-                      ...freshGroup.messages.map(
-                        (message) => Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.glass,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Text(
-                            '${message.author}: ${message.body}',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                        ),
-                      ),
-                      TextField(
-                        controller: messageController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Write a message'),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () async {
-                          await Get.find<CollaborativeController>().addGroupMessage(
-                            freshGroup.id,
-                            messageController.text.trim(),
-                          );
-                          messageController.clear();
-                          setModalState(() {});
-                        },
-                        child: const Text('Post message'),
-                      ),
                     ],
-                  );
-                }),
-              ),
-            ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
-      isScrollControlled: true,
     );
   }
-}
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.text});
+  void _showCreateGroupDialog(String? userId) {
+    final nameController = TextEditingController();
+    final subjectController = TextEditingController();
+    final descriptionController = TextEditingController();
 
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.glass,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border),
+    Get.dialog(
+      AlertDialog(
+        title: const Text("Create Study Group"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameController, decoration: const InputDecoration(labelText: "Group Name")),
+            TextField(controller: subjectController, decoration: const InputDecoration(labelText: "Subject")),
+            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: "Description")),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              if (userId == null) return;
+              await FirebaseFirestore.instance.collection('groups').add({
+                "name": nameController.text.trim(),
+                "subject": subjectController.text.trim(),
+                "description": descriptionController.text.trim(),
+                "createdBy": userId,
+                "members": [userId],
+                "createdAt": FieldValue.serverTimestamp(),
+              });
+              Get.back();
+            },
+            child: const Text("Create"),
+          ),
+        ],
       ),
-      child: Text(text, style: const TextStyle(color: Colors.white70, fontSize: 12)),
     );
   }
 }
